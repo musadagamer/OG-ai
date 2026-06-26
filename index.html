@@ -708,6 +708,10 @@ window.startListening=function(){
  b.textContent='🔴';
  recognition.start();
 };
+  window.handleFileUpload = function(event) {
+  const file = event.target.files[0];
+  console.log("FILE PICKED:", file);
+};
 
 </script>
 <script>if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js"));}let deferredPrompt;window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredPrompt=e;document.getElementById("install-banner").style.display="block";});document.getElementById("install-btn").onclick=async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;install-banner.style.display="none"};document.getElementById("close-install").onclick=()=>install-banner.style.display="none";</script><script>
