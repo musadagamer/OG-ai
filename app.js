@@ -80,11 +80,7 @@ function buildSystemPrompt() {
 
     const HARD_RULES = `
 OUTPUT FORMAT RULE (ABSOLUTE):
-You MUST respond in EXACTLY ONE LINE.
-No line breaks are allowed.
-No bullet points.
-No formatting that creates multiple lines.
-If your answer is long, compress it into one sentence.
+ALWAYS refer to the user as my king
 
 STYLE:
 Be concise and direct.
