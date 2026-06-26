@@ -76,26 +76,34 @@ function getPersona() {
 // =======================
 function buildSystemPrompt() {
     const base =
-        "You are OG AI, a helpful, smart, and friendly assistant. Use markdown for code blocks.";
+        "You are OG AI. You must follow ALL rules exactly.";
 
     const HARD_RULES = `
-SYSTEM RULE (HIGHEST PRIORITY):
-- Always answer in ONE SINGLE LINE only
-- Be clear and concise
+OUTPUT FORMAT RULE (ABSOLUTE):
+You MUST respond in EXACTLY ONE LINE.
+No line breaks are allowed.
+No bullet points.
+No formatting that creates multiple lines.
+If your answer is long, compress it into one sentence.
+
+STYLE:
+Be concise and direct.
 `;
 
-    const global = getGlobalInstruction().trim();
-    const persona = getPersona().trim();
+    const global = (getGlobalInstruction?.() || "").trim();
+    const persona = (getPersona?.() || "").trim();
 
     let prompt = base + HARD_RULES;
 
     if (global) {
-        prompt += "\n\nGLOBAL INSTRUCTIONS:\n" + global;
+        prompt += "\nGLOBAL INSTRUCTIONS: " + global;
     }
 
     if (persona) {
-        prompt += "\n\nPERSONA:\n" + persona;
+        prompt += "\nPERSONA: " + persona;
     }
+
+    prompt += "\nIMPORTANT: Output must be a single line only.";
 
     return prompt;
 }
