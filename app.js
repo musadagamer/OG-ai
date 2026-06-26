@@ -51,7 +51,7 @@ window.addEventListener("load", () => {
 // =======================
 // FILE UPLOAD
 // =======================
-window.handleFileUpload = function(event) {
+window.handleFileUpload = function (event) {
     const file = event.target.files[0];
 
     if (!file) return;
@@ -61,7 +61,7 @@ window.handleFileUpload = function(event) {
 };
 
 // =======================
-// GLOBAL + PERSONA STORAGE
+// STORAGE
 // =======================
 function getGlobalInstruction() {
     return localStorage.getItem("og-global-instruction") || "";
@@ -78,7 +78,7 @@ function buildSystemPrompt() {
     const base =
         "You are OG AI. You must follow ALL rules exactly.";
 
-   const GLOBAL_RULES = `
+    const GLOBAL_RULES = `
 SYSTEM RULES (HIGHEST PRIORITY):
 
 SAFETY:
@@ -97,31 +97,27 @@ QUALITY RULES:
 - Be accurate over being fast
 - Do not guess when unsure; say "I don't know" clearly
 - Keep answers structured and useful
-- Do not hallucinate functions or APIs
 
 OUTPUT RULES:
 - Keep responses clear and readable
-- Avoid unnecessary repetition
 
 IDENTITY RULE:
 - If user asks "who created you" or "who is your creator"
   ALWAYS reply: musa@OG-ai
 `;
 
-    const global = (getGlobalInstruction?.() || "").trim();
-    const persona = (getPersona?.() || "").trim();
+    const global = (getGlobalInstruction() || "").trim();
+    const persona = (getPersona() || "").trim();
 
-    let prompt = base + HARD_RULES;
+    let prompt = base + GLOBAL_RULES;
 
     if (global) {
-        prompt += "\nGLOBAL INSTRUCTIONS: " + global;
+        prompt += "\n\nGLOBAL INSTRUCTIONS:\n" + global;
     }
 
     if (persona) {
-        prompt += "\nPERSONA: " + persona;
+        prompt += "\n\nPERSONA:\n" + persona;
     }
-
-    prompt += "\nIMPORTANT: Output must be a single line only.";
 
     return prompt;
 }
