@@ -1,35 +1,81 @@
-const CACHE_NAME = "og-ai-v1";
+// Register Service Worker
 
-const FILES_TO_CACHE = [
-  "./",
-  "./index.html",
-  "./manifest.webmanifest",
-  "./icons/icon-192.png",
-  "./icons/icon-512.png"
-];
+if ("serviceWorker" in navigator) {
 
-self.addEventListener("install", event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(FILES_TO_CACHE))
-  );
-  self.skipWaiting();
+    window.addEventListener("load", () => {
+
+        navigator.serviceWorker.register("./sw.js")
+
+        .then(() => {
+
+            console.log("Service Worker Registered");
+
+        })
+
+        .catch(err => {
+
+            console.log(err);
+
+        });
+
+    });
+
+}
+
+let deferredPrompt;
+
+window.addEventListener("beforeinstallprompt", (e) => {
+
+    e.preventDefault();
+
+    deferredPrompt = e;
+
+    const installBtn = document.getElementById("installAppBtn");
+
+    if (installBtn) {
+
+        installBtn.style.display = "block";
+
+    }
+
 });
 
-self.addEventListener("activate", event => {
-  event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(
-        keys
-          .filter(key => key !== CACHE_NAME)
-          .map(key => caches.delete(key))
-      )
-    )
-  );
-  self.clients.claim();
-});
+const installBtn = document.getElementById("installAppBtn");
 
-self.addEventListener("fetch", event => {
-  event.respondWith(
-    caches.match(event.request).then(response => response || fetch(event.request))
-  );
+if (installBtn) {
+
+    installBtn.addEventListener("click", async () => {
+
+        if (!deferredPrompt) {
+
+            alert("OG AI isn't ready to install yet.");
+
+            return;
+
+        }
+
+        deferredPrompt.prompt();
+
+        const { outcome } = await deferredPrompt.userChoice;
+
+        console.log("Install:", outcome);
+
+        deferredPrompt = null;
+
+        installBtn.style.display = "none";
+
+    });
+
+}
+
+window.addEventListener("appinstalled", () => {
+
+    console.log("OG AI Installed");
+
+    if (installBtn) {
+
+        installBtn.style.display = "none";
+
+    }
+
 });
