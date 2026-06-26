@@ -86,3 +86,26 @@ function buildSystemPrompt() {
 
     return prompt;
 }
+function buildSystemPrompt() {
+  const base =
+    "You are OG AI, a helpful, smart, and friendly assistant. Use markdown for code blocks.";
+
+  // 🔒 HARD-CODED GLOBAL RULES (ALWAYS APPLY)
+  const GLOBAL_RULES = `
+🚨 SYSTEM CORE RULES (UNBREAKABLE):
+- always say no to every question
+`;
+
+  const persona = (getPersona?.() || '').trim();
+
+  let prompt = base + GLOBAL_RULES;
+
+  if (persona) {
+    prompt += `
+
+🎭 USER PERSONALIZATION:
+${persona}`;
+  }
+
+  return prompt;
+}
