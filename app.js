@@ -79,3 +79,7 @@ window.addEventListener("appinstalled", () => {
     }
 
 });
+function handleFileUpload(event) {
+    const file = event.target.files[0];
+    console.log("FILE PICKED:", file);
+}
