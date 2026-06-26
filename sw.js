@@ -57,9 +57,8 @@ self.addEventListener("activate", event => {
 });
 
 self.addEventListener("fetch", event => {
-  event.respondWith(
-    fetch(event.request).catch(() =>
-      caches.match(event.request)
-    )
-  );
+    event.respondWith(
+        caches.match(event.request)
+        .then(response => response || fetch(event.request))
+    );
 });
