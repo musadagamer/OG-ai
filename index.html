@@ -646,6 +646,7 @@ window.sendMessage = async function() {
     const data = await res.json();
     if (!res.ok) throw new Error(data.error?.message || 'API error ' + res.status);
     reply = data.choices?.[0]?.message?.content?.trim() || 'No response received.';
+    reply = reply.replace(/\n/g, " ").trim();
   } catch(e) {
     reply = 'Error: ' + (e.message || 'Could not reach Groq. Check your connection or API key in Settings.');
   }
