@@ -646,7 +646,15 @@ window.sendMessage = async function() {
     const data = await res.json();
     if (!res.ok) throw new Error(data.error?.message || 'API error ' + res.status);
     reply = data.choices?.[0]?.message?.content?.trim() || 'No response received.';
-    if (text.toLowerCase().includes("creator")) {
+   const msg = text.toLowerCase();
+
+if (
+  msg.includes("creator") ||
+  msg.includes("who is your creator") ||
+  msg.includes("who created you") ||
+  msg.includes("created you")
+  msg.includes("who made you")
+) {
   reply = "musa@OG-ai";
 }
     reply = reply.replace(/\n/g, " ").trim();
