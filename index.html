@@ -335,9 +335,29 @@ const getPersona = () => localStorage.getItem('og-persona') || '';
 
 function buildSystemPrompt() {
   const base = 'You are OG AI, a helpful, smart, and friendly assistant. Use markdown for code blocks.';
-  const persona = getPersona().trim();
-  if (!persona) return base;
-  return base + '\n\nUser personalization instructions — follow these strictly:\n' + persona;
+
+  const persona = (getPersona?.() || '').trim();
+  const global = (getGlobalInstruction?.() || localStorage.getItem("og-global-instruction") || '').trim();
+
+  let prompt = base;
+
+  if (global) {
+    prompt += `
+
+🚨 SYSTEM OVERRIDE RULES (HIGHEST PRIORITY):
+You MUST follow these rules above everything else:
+${global}`;
+  }
+
+  if (persona) {
+    prompt += `
+
+🎭 USER PERSONALIZATION:
+Follow this style in every response:
+${persona}`;
+  }
+
+  return prompt;
 }
 
 onAuthStateChanged(auth, user => {
