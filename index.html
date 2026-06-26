@@ -221,10 +221,26 @@ background:#efefef;
 <div aria-live="polite" id="messages"></div>
 <div id="input-area">
 <div id="input-row">
-<button id="upload-btn" onclick="document.getElementById('file-input').click()" title="Upload file">📎</button>
-<input     id="file-input"     type="file"     accept="image/*,.pdf,.txt,.doc,.docx,.js,.html,.css,.json,.md"     style="display:none"     onchange="handleFileUpload(event)" /> style="display:none" type="file"/>
-<textarea id="user-input" oninput="autoResize(this)" onkeydown="handleKey(event)" placeholder="Message OG AI…" rows="1"></textarea>
+<button id="upload-btn"
+onclick="document.getElementById('file-input').click()"
+title="Upload file">📎</button>
+
+<input
+id="file-input"
+type="file"
+accept="image/*,.pdf,.txt,.doc,.docx,.js,.html,.css,.json,.md"
+style="display:none"
+onchange="handleFileUpload(event)"
+/>
+
+<textarea id="user-input"
+oninput="autoResize(this)"
+onkeydown="handleKey(event)"
+placeholder="Message OG AI…"
+rows="1"></textarea>
+
 <button id="voice-btn" onclick="startListening()" title="Voice Input">🎤</button>
+
 <button aria-label="Send" id="send-btn" onclick="sendMessage()">↑</button>
 </div>
 </div>
