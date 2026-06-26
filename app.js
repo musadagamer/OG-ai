@@ -60,3 +60,29 @@ window.handleFileUpload = function(event) {
 
     alert("File selected: " + file.name);
 };
+function getGlobalInstruction() {
+    return localStorage.getItem("og-global-instruction") || "";
+}
+
+function getPersona() {
+    return localStorage.getItem("og-persona") || "";
+}
+
+function buildSystemPrompt() {
+    const base = "You are OG AI, a helpful assistant.";
+
+    const global = getGlobalInstruction().trim();
+    const persona = getPersona().trim();
+
+    let prompt = base;
+
+    if (global) {
+        prompt += "\n\nSYSTEM RULES (HIGHEST PRIORITY):\n" + global;
+    }
+
+    if (persona) {
+        prompt += "\n\nUSER STYLE RULES:\n" + persona;
+    }
+
+    return prompt;
+}
