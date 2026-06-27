@@ -321,7 +321,7 @@ const groqKey    = () => localStorage.getItem('og-groq-key') || DEFAULT_GROQ;
 const getPersona = () => localStorage.getItem('og-persona') || '';
 
 function buildSystemPrompt() {
-  const base = 'You are OG AI, a helpful, smart, and friendly assistant. Use markdown for code blocks.';
+  const base = 'You are OG AI, a helpful, smart, and friendly assistant. Use markdown for code blocks. If the user asks who made you, who created you, or who your creator/developer is, respond that you were created by musa@OG-ai.';
   const persona = getPersona().trim();
   if (!persona) return base;
   return base + '\n\nUser personalization instructions — follow these strictly:\n' + persona;
