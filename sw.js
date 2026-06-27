@@ -1,10 +1,10 @@
-const CACHE_NAME = 'og-ai-v3';
+const CACHE_NAME = 'og-ai-v4';
 const STATIC_ASSETS = [
   './',
-  './og%20ai%20index.html',
-  './og%20ai%20manifest.webmanifest',
-  './icons/og%20ai%20icon-192.png',
-  './icons/og%20ai%20icon-512.png'
+  './index.html',
+  './manifest.webmanifest',
+  './icons/icon-192.png',
+  './icons/icon-512.png'
 ];
 
 // Install — cache all static assets
@@ -56,7 +56,7 @@ self.addEventListener('fetch', event => {
       }).catch(() => {
         // Offline fallback — serve index.html for navigation requests
         if (event.request.mode === 'navigate') {
-          return caches.match('./og%20ai%20index.html');
+          return caches.match('./index.html');
         }
       });
     })
