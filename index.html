@@ -10,11 +10,11 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="OG AI">
 <meta name="mobile-web-app-capable" content="yes">
-<link rel="manifest" href="og%20ai%20manifest.webmanifest">
-<link rel="apple-touch-icon" href="icons/og%20ai%20icon-192.png">
-<link rel="apple-touch-icon" sizes="512x512" href="icons/og%20ai%20icon-512.png">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/og%20ai%20icon-192.png">
-<link rel="icon" type="image/png" sizes="512x512" href="icons/og%20ai%20icon-512.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" sizes="512x512" href="icons/icon-512.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
@@ -919,7 +919,7 @@ window.startListening=function(){
 <script>
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./og%20ai%20sw.js")
+    navigator.serviceWorker.register("./sw.js")
       .then(r => console.log("SW registered:", r.scope))
       .catch(e => console.warn("SW failed:", e));
   });
