@@ -535,7 +535,13 @@ window.delChat = async function(e, id) {
 
 function fmt(text) {
   text = text.replace(/```[\w]*\n?([\s\S]*?)```/g, (_, c) =>
-    `<pre><code>${c.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').trimEnd()}</code></pre>`);
+  `<pre class="code-block">
+    <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
+    <code>${c.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').trimEnd()}</code>
+  </pre>`
+);
+
+
   text = text.replace(/`([^`\n]+)`/g, (_, c) => `<code>${c.replace(/</g,'&lt;')}</code>`);
   text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
   text = text.replace(/\*(.+?)\*/g, '<em>$1</em>');
