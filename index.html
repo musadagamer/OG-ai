@@ -212,9 +212,9 @@ background:#efefef;
     <div class="user-info">
       <div class="user-avatar" id="user-av">?</div>
       <div class="user-email" id="user-em">—</div>
-      <button class="logout-btn" title="Sign out" onclick="doSignOut()">⏏</button>
+      <button class="logout-btn" title="Sign out" onclick="doSignOut()">🔐 log out</button>
     </div>
-    <button id="new-chat-btn" onclick="newChat()">＋ New chat</button>
+    <button id="new-chat-btn" onclick="newChat()">🗪 new chat</button>
     <div id="chat-list"></div>
     <div class="sidebar-bottom">
       <button class="settings-btn" onclick="openSettings()">⚙ Settings</button>
@@ -1059,6 +1059,33 @@ if ("serviceWorker" in navigator) {
       .catch(e => console.warn("SW failed:", e));
   });
 }
+window.copyCode = async function(btn) {
+  const block = btn.closest(".code-block");
+  if (!block) return;
+
+  const codeEl = block.querySelector("code");
+  if (!codeEl) return;
+
+  const code = codeEl.innerText;
+
+  try {
+    await navigator.clipboard.writeText(code);
+
+    btn.textContent = "✔ Copied!";
+    setTimeout(() => btn.textContent = "📋 Copy", 1200);
+
+  } catch (err) {
+    const textarea = document.createElement("textarea");
+    textarea.value = code;
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand("copy");
+    document.body.removeChild(textarea);
+
+    btn.textContent = "✔ Copied!";
+    setTimeout(() => btn.textContent = "📋 Copy", 1200);
+  }
+};
 </script>
 </body>
 </html>
