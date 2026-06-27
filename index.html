@@ -104,9 +104,11 @@ body{font-family:system-ui,sans-serif;background:var(--surface-0,#f5f5f5);color:
 #user-input{flex:1;border:none;background:transparent;font-size:13px;color:#1a1a1a;resize:none;outline:none;font-family:inherit;max-height:100px;min-height:20px;line-height:1.5}
 #user-input::placeholder{color:#bbb}
 #user-input:disabled{opacity:0.5}
-#send-btn{width:28px;height:28px;border-radius:6px;border:none;background:#378ADD;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:opacity 0.15s;font-size:15px;line-height:1}
+#send-btn{width:28px;height:28px;border-radius:6px;border:none;background:#378ADD;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:opacity 0.15s,background 0.15s;font-size:15px;line-height:1}
 #send-btn:disabled{opacity:0.4;cursor:not-allowed}
 #send-btn:hover:not(:disabled){opacity:0.85}
+#send-btn.stop{background:#444;cursor:pointer;opacity:1}
+#send-btn.stop:hover{background:#222}
 #modal-overlay{display:none;position:absolute;inset:0;background:rgba(0,0,0,0.4);align-items:center;justify-content:center;z-index:200}
 #modal-overlay.open{display:flex}
 .modal-card{background:#fff;border-radius:12px;border:0.5px solid #ddd;padding:24px;width:340px;max-width:92%;max-height:88%;overflow-y:auto}
@@ -238,7 +240,7 @@ background:#efefef;
 <input type="file" id="file-input" style="display:none" onchange="handleFileSelect(event)">
 <textarea id="user-input" rows="1" placeholder="Message OG AI…" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
 <button id="voice-btn" title="Voice Input" onclick="startListening()">🎤</button>
-<button id="send-btn" onclick="sendMessage()" aria-label="Send">↑</button>
+<button id="send-btn" onclick="handleSendBtnClick()" aria-label="Send">↑</button>
 
       </div>
     </div>
@@ -255,6 +257,14 @@ background:#efefef;
         <label>Groq API Key</label>
         <input type="password" id="s-groq" placeholder="gsk_… (leave blank for default)">
         <div class="modal-note">Leave blank to use the built-in key.</div>
+      </div>
+
+      <hr class="modal-divider">
+
+      <div class="modal-field" id="settings-install-field">
+        <label>App</label>
+        <button id="settings-install-btn" onclick="installApp()" style="display:none;align-items:center;gap:6px;background:#378ADD;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;">⬇ Install OG AI</button>
+        <div class="modal-note" id="settings-install-note"></div>
       </div>
 
       <hr class="modal-divider">
@@ -304,6 +314,8 @@ let currentChatId = null;
 let isStreaming   = false;
 let chatUnsub     = null;
 let resendCooldown = false;
+let activeAbortController = null;
+let wasStopped = false;
 
 const groqKey    = () => localStorage.getItem('og-groq-key') || DEFAULT_GROQ;
 const getPersona = () => localStorage.getItem('og-persona') || '';
@@ -614,8 +626,9 @@ window.sendMessage = async function() {
   const attachment = pendingAttachment; // snapshot before clearing
   if (!text && !attachment) return;
   isStreaming = true;
+  wasStopped = false;
   input.value = ''; input.style.height = 'auto'; input.disabled = true;
-  document.getElementById('send-btn').disabled = true;
+  setSendBtnStopMode(true);
   window.clearAttachment();
 
   const displayText = text || `Please look at the attached file (${attachment.name}).`;
@@ -630,7 +643,7 @@ window.sendMessage = async function() {
     } catch(e) {
       appendBubble('ai', 'Failed to create chat. Check your connection.');
       isStreaming = false; input.disabled = false;
-      document.getElementById('send-btn').disabled = false;
+      setSendBtnStopMode(false);
       return;
     }
   }
@@ -660,10 +673,12 @@ window.sendMessage = async function() {
   }
 
   let reply = '';
+  activeAbortController = new AbortController();
   try {
     const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + groqKey() },
+      signal: activeAbortController.signal,
       body: JSON.stringify({
         model: 'llama-3.1-8b-instant',
         max_tokens: 1024,
@@ -678,8 +693,24 @@ window.sendMessage = async function() {
     if (!res.ok) throw new Error(data.error?.message || 'API error ' + res.status);
     reply = data.choices?.[0]?.message?.content?.trim() || 'No response received.';
   } catch(e) {
+    if (e.name === 'AbortError') {
+      removeTyping();
+      appendBubble('ai', '*Stopped.*');
+      chatMessages.push({ role: 'ai', content: '*Stopped.*', stopped: true });
+      try {
+        const title = chatMessages[0]?.content?.slice(0,45) + (chatMessages[0]?.content?.length > 45 ? '…' : '') || 'Conversation';
+        await set(ref(db, 'users/' + currentUser.uid + '/chats/' + currentChatId), { title, messages: chatMessages, ts: Date.now() });
+      } catch(_) {}
+      isStreaming = false;
+      input.disabled = false;
+      setSendBtnStopMode(false);
+      activeAbortController = null;
+      input.focus();
+      return;
+    }
     reply = 'Error: ' + (e.message || 'Could not reach Groq. Check your connection or API key in Settings.');
   }
+  activeAbortController = null;
 
   removeTyping();
   appendBubble('ai', reply);
@@ -693,8 +724,40 @@ window.sendMessage = async function() {
   document.querySelectorAll('.chat-item').forEach(i => i.classList.toggle('active', i.dataset.id === currentChatId));
   isStreaming = false;
   input.disabled = false;
-  document.getElementById('send-btn').disabled = false;
+  setSendBtnStopMode(false);
   input.focus();
+};
+
+function setSendBtnStopMode(isStop) {
+  const btn = document.getElementById('send-btn');
+  if (isStop) {
+    btn.classList.add('stop');
+    btn.textContent = '■';
+    btn.title = 'Stop generating';
+    btn.setAttribute('aria-label', 'Stop generating');
+    btn.disabled = false;
+  } else {
+    btn.classList.remove('stop');
+    btn.textContent = '↑';
+    btn.title = 'Send';
+    btn.setAttribute('aria-label', 'Send');
+    btn.disabled = false;
+  }
+}
+
+window.handleSendBtnClick = function() {
+  if (isStreaming) {
+    stopGenerating();
+  } else {
+    sendMessage();
+  }
+};
+
+window.stopGenerating = function() {
+  if (activeAbortController) {
+    wasStopped = true;
+    activeAbortController.abort();
+  }
 };
 
 window.toggleSidebar=function(){
@@ -707,6 +770,8 @@ m.classList.toggle('shift');
 /* ---------- PWA install ---------- */
 let deferredInstallPrompt = null;
 const installBtn = document.getElementById('install-btn');
+const settingsInstallBtn  = document.getElementById('settings-install-btn');
+const settingsInstallNote = document.getElementById('settings-install-note');
 
 function isStandalone() {
   return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
@@ -717,10 +782,27 @@ function isIOS() {
 }
 
 function refreshInstallButton() {
-  if (isStandalone()) { installBtn.style.display = 'none'; return; }
-  if (deferredInstallPrompt) { installBtn.style.display = 'flex'; return; }
-  if (isIOS()) { installBtn.style.display = 'flex'; installBtn.textContent = '⬇ Install'; return; }
-  installBtn.style.display = 'none';
+  // Top bar button
+  if (isStandalone()) { installBtn.style.display = 'none'; }
+  else if (deferredInstallPrompt) { installBtn.style.display = 'flex'; }
+  else if (isIOS()) { installBtn.style.display = 'flex'; installBtn.textContent = '⬇ Install'; }
+  else { installBtn.style.display = 'none'; }
+
+  // Settings modal button + note
+  if (isStandalone()) {
+    settingsInstallBtn.style.display = 'none';
+    settingsInstallNote.textContent = '✓ Already installed on this device.';
+  } else if (deferredInstallPrompt) {
+    settingsInstallBtn.style.display = 'flex';
+    settingsInstallNote.textContent = 'Install OG AI for a faster, app-like experience.';
+  } else if (isIOS()) {
+    settingsInstallBtn.style.display = 'flex';
+    settingsInstallBtn.textContent = '⬇ Install';
+    settingsInstallNote.textContent = 'Tap Install for instructions (Safari requires a manual step).';
+  } else {
+    settingsInstallBtn.style.display = 'none';
+    settingsInstallNote.textContent = 'Your browser doesn\'t support one-tap install here — look for "Install app" or "Add to Home Screen" in your browser\'s menu.';
+  }
 }
 
 window.addEventListener('beforeinstallprompt', e => {
@@ -738,8 +820,9 @@ window.installApp = async function() {
   if (deferredInstallPrompt) {
     deferredInstallPrompt.prompt();
     const { outcome } = await deferredInstallPrompt.userChoice;
-    if (outcome === 'accepted') installBtn.style.display = 'none';
+    if (outcome === 'accepted') { installBtn.style.display = 'none'; settingsInstallBtn.style.display = 'none'; }
     deferredInstallPrompt = null;
+    refreshInstallButton();
     return;
   }
   if (isIOS()) {
@@ -767,6 +850,7 @@ refreshInstallButton();
 window.addEventListener('DOMContentLoaded', refreshInstallButton);
 
 window.openSettings = function() {
+  refreshInstallButton();
   document.getElementById('s-groq').value = localStorage.getItem('og-groq-key') || '';
   const persona = getPersona();
   document.getElementById('s-persona').value = persona;
