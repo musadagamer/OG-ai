@@ -1,4 +1,4 @@
-```js
+
 export async function handler(event) {
   if (event.httpMethod !== "POST") {
     return {
@@ -42,4 +42,4 @@ export async function handler(event) {
     };
   }
 }
-```
+
