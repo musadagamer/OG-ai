@@ -853,15 +853,17 @@ window.sendMessage = async function() {
     reply = data.choices?.[0]?.message?.content?.trim() || 'No response received.';
   } catch(e) {
     if (e.name === 'AbortError') {
-      
+      removeTyping();
       appendBubble('ai', '*Stopped.*');
       chatMessages.push({ role: 'ai', content: '*Stopped.*', stopped: true });
-      try {removeTyping();
+      try {
         const title = chatMessages[0]?.content?.slice(0,45) + (chatMessages[0]?.content?.length > 45 ? '…' : '') || 'Conversation';
         await set(ref(db, 'users/' + currentUser.uid + '/chats/' + currentChatId), { title, messages: chatMessages, ts: Date.now() });
       } catch(_) {}
       isStreaming = false;
       input.disabled = false;
+      input.style.opacity = '1';
+      input.style.pointerEvents = 'auto';
       setSendBtnStopMode(false);
       activeAbortController = null;
       input.focus();
