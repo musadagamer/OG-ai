@@ -166,7 +166,7 @@ background:#efefef;
 </head>
 <body>
 
-<div id="auth-screen" class="screen active">
+<div id="auth-screen" class="screen">
   <div class="auth-card">
     <div class="auth-logo">
       <h1>✦ OG AI</h1>
@@ -304,6 +304,23 @@ const FB = {
   appId: "1:613801206552:web:8f872111a06a52e908b46d"
 };
 const DEFAULT_GROQ = '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';
+// Fal.ai API Key (replace with your own)
+const FAL_API_KEY = "c6de66c6-a12f-43b3-96d3-108d49c6d994:67e885e26581396278cce9f67b14347a";
+
+// Detect image requests
+function isImagePrompt(text){
+  const t = text.toLowerCase();
+  return [
+    "generate an image",
+    "create an image",
+    "make an image",
+    "draw",
+    "illustrate",
+    "generate a picture",
+    "create a picture",
+    "make a picture"
+  ].some(v => t.includes(v));
+}
 
 const fbApp = initializeApp(FB);
 const auth  = getAuth(fbApp);
@@ -316,6 +333,8 @@ let chatUnsub     = null;
 let resendCooldown = false;
 let activeAbortController = null;
 let wasStopped = false;
+let stopTyping = false;
+
 
 const groqKey    = () => localStorage.getItem('og-groq-key') || DEFAULT_GROQ;
 const getPersona = () => localStorage.getItem('og-persona') || '';
@@ -539,20 +558,115 @@ function appendBubble(role, content, scroll=true, attachName=null) {
   d.innerHTML = `<div class="av ${role}">${role==='ai'?'✦':'U'}</div><div class="bubble">${tagHtml}${html}</div>`;
   wrap.appendChild(d);
   if (scroll) wrap.scrollTop = wrap.scrollHeight;
+  
   return d.querySelector('.bubble');
 }
 
-function showTyping() {
-  const es = document.getElementById('empty-state');
-  if (es) es.remove();
-  const wrap = document.getElementById('messages');
-  const d = document.createElement('div');
-  d.id = 'typing'; d.className = 'msg ai';
-  d.innerHTML = `<div class="av ai">✦</div><div class="bubble"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div>`;
-  wrap.appendChild(d);
-  wrap.scrollTop = wrap.scrollHeight;
+
+  let typingAnimation;
+
+function getThinkingStatus(prompt = "") {
+    prompt = prompt.toLowerCase();
+
+    if (pendingAttachment)
+        return "📂 Processing file";
+
+    if (prompt.startsWith("/"))
+        return "⚡ Running command";
+
+    if (
+    prompt.includes("image") ||
+    prompt.includes("draw") ||
+    prompt.includes("picture") ||
+    prompt.includes("photo") ||
+    prompt.includes("art") ||
+    prompt.includes("illustration") ||
+    prompt.includes("logo")
+)
+    return "🎨 Generating image";
+
+    if (
+        prompt.includes("code") ||
+        prompt.includes("html") ||
+        prompt.includes("css") ||
+        prompt.includes("javascript") ||
+        prompt.includes("python") ||
+        prompt.includes("java")
+    )
+        return "💻 Writing code";
+
+    if (
+        prompt.includes("math") ||
+        prompt.includes("calculate") ||
+        prompt.includes("solve")
+    )
+        return "🧮 Calculating";
+
+    if (
+        prompt.includes("summary") ||
+        prompt.includes("summarize")
+    )
+        return "📊 Summarizing";
+
+    return "🧠 Thinking";
 }
-function removeTyping() { const t = document.getElementById('typing'); if (t) t.remove(); }
+
+function showTyping(prompt = "") {
+    const es = document.getElementById("empty-state");
+    if (es) es.remove();
+
+    const wrap = document.getElementById("messages");
+
+    const d = document.createElement("div");
+    d.id = "typing";
+    d.className = "msg ai";
+
+    d.innerHTML = `
+        <div class="av ai">✦</div>
+        <div class="bubble">
+            <span id="typing-status"></span>
+        </div>
+    `;
+
+    wrap.appendChild(d);
+
+    const status = getThinkingStatus(prompt);
+
+    const span = document.getElementById("typing-status");
+
+    let dots = 1;
+
+    span.textContent = status + ".";
+
+    typingAnimation = setInterval(() => {
+        dots++;
+        if (dots > 3) dots = 1;
+        span.textContent = status + ".".repeat(dots);
+    }, 400);
+
+    wrap.scrollTop = wrap.scrollHeight;
+}
+ function removeTyping() {
+    clearInterval(typingAnimation);
+
+    const t = document.getElementById("typing");
+
+    if (t) t.remove();
+}
+
+async function typeWriter(bubble, text) {
+    for (let i = 1; i <= text.length; i++) {
+        bubble.innerHTML = fmt(text.substring(0, i));
+
+        document.getElementById("messages").scrollTop =
+            document.getElementById("messages").scrollHeight;
+
+        await new Promise(resolve => setTimeout(resolve, 10));
+    }
+
+    // Ensure the final formatted message is displayed
+    bubble.innerHTML = fmt(text);
+}
 
 window.sendSuggestion = t => { document.getElementById('user-input').value = t; sendMessage(); };
 window.handleKey = e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } };
@@ -659,7 +773,7 @@ window.sendMessage = async function() {
   if (attachment) storedMsg.attachName = attachment.name;
   chatMessages.push(storedMsg);
   appendBubble('user', displayText, true, attachment ? attachment.name : null);
-  showTyping();
+  showTyping(displayText);
 
   const history = chatMessages.slice(-20).map(m => ({
     role: m.role === 'ai' ? 'assistant' : 'user',
@@ -694,10 +808,10 @@ window.sendMessage = async function() {
     reply = data.choices?.[0]?.message?.content?.trim() || 'No response received.';
   } catch(e) {
     if (e.name === 'AbortError') {
-      removeTyping();
+      
       appendBubble('ai', '*Stopped.*');
       chatMessages.push({ role: 'ai', content: '*Stopped.*', stopped: true });
-      try {
+      try {removeTyping();
         const title = chatMessages[0]?.content?.slice(0,45) + (chatMessages[0]?.content?.length > 45 ? '…' : '') || 'Conversation';
         await set(ref(db, 'users/' + currentUser.uid + '/chats/' + currentChatId), { title, messages: chatMessages, ts: Date.now() });
       } catch(_) {}
@@ -713,19 +827,34 @@ window.sendMessage = async function() {
   activeAbortController = null;
 
   removeTyping();
-  appendBubble('ai', reply);
-  chatMessages.push({ role: 'ai', content: reply });
 
-  try {
-    const title = chatMessages[0]?.content?.slice(0,45) + (chatMessages[0]?.content?.length > 45 ? '…' : '') || 'Conversation';
-    await set(ref(db, 'users/' + currentUser.uid + '/chats/' + currentChatId), { title, messages: chatMessages, ts: Date.now() });
-  } catch(_) {}
+const bubble = appendBubble("ai", "");
+await typeWriter(bubble, reply);
 
-  document.querySelectorAll('.chat-item').forEach(i => i.classList.toggle('active', i.dataset.id === currentChatId));
-  isStreaming = false;
-  input.disabled = false;
-  setSendBtnStopMode(false);
-  input.focus();
+chatMessages.push({ role: 'ai', content: reply });
+
+try {
+    const title = chatMessages[0]?.content?.slice(0,45) +
+        (chatMessages[0]?.content?.length > 45 ? '…' : '') ||
+        'Conversation';
+
+    await set(
+        ref(db, 'users/' + currentUser.uid + '/chats/' + currentChatId),
+        {
+            title,
+            messages: chatMessages,
+            ts: Date.now()
+        }
+    );
+} catch (_) {}
+
+document.querySelectorAll('.chat-item')
+    .forEach(i => i.classList.toggle('active', i.dataset.id === currentChatId));
+
+isStreaming = false;
+input.disabled = false;
+setSendBtnStopMode(false);
+input.focus();
 };
 
 function setSendBtnStopMode(isStop) {
