@@ -406,21 +406,61 @@ window.doSignup = async function() {
   const err   = document.getElementById('signup-err');
   const btn   = document.getElementById('signup-btn');
   const succ  = document.getElementById('signup-success');
-  err.textContent = ''; succ.style.display = 'none';
-  if (!email || !pass) { err.textContent = 'Please fill in all fields.'; return; }
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { err.textContent = 'Please enter a valid email address.'; return; }
-  if (pass.length < 6) { err.textContent = 'Password must be at least 6 characters.'; return; }
-  btn.disabled = true; btn.textContent = 'Creating account…';
+
+  err.textContent = '';
+  succ.style.display = 'none';
+
+  if (!email || !pass) {
+    err.textContent = 'Please fill in all fields.';
+    return;
+  }
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    err.textContent = 'Please enter a valid email address.';
+    return;
+  }
+
+  if (pass.length < 6) {
+    err.textContent = 'Password must be at least 6 characters.';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Creating account…';
+
   try {
+    // 1. CREATE AUTH USER
     const cred = await createUserWithEmailAndPassword(auth, email, pass);
+    console.log("✅ AUTH USER CREATED:", cred.user.uid);
+
+    // 2. SEND EMAIL VERIFICATION
     await sendEmailVerification(cred.user);
-    try { await set(ref(db, 'users/' + cred.user.uid + '/profile'), { email, createdAt: Date.now() }); } catch(_) {}
+    console.log("📧 Verification email sent");
+
+    // 3. WRITE TO DATABASE (FIXED + DEBUGGED)
+    try {
+      await set(ref(db, 'users/' + cred.user.uid + '/profile'), {
+        email: email,
+        createdAt: Date.now(),
+        uid: cred.user.uid
+      });
+
+      console.log("✅ DB WRITE SUCCESS");
+    } catch (e) {
+      console.error("❌ DB WRITE FAILED:", e);
+      err.textContent = "Database error: " + e.message;
+    }
+
+    // 4. UI SUCCESS STATE
     succ.style.display = 'block';
-    btn.textContent = 'Resend confirmation email';
     btn.disabled = false;
-  } catch(e) {
+    btn.textContent = 'Resend confirmation email';
+
+  } catch (e) {
+    console.error("❌ SIGNUP ERROR:", e);
     err.textContent = authErr(e.code);
-    btn.disabled = false; btn.textContent = 'Create account & send confirmation';
+    btn.disabled = false;
+    btn.textContent = 'Create account & send confirmation';
   }
 };
 
