@@ -222,7 +222,6 @@ background:#efefef;
     <div id="top-bar" style="padding:10px;border-bottom:.5px solid #e0e0e0;background:#f9f9f9;display:flex;align-items:center;justify-content:space-between;">
       <button id="menu-btn" onclick="toggleSidebar()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#555;">☰</button>
       <div style="display:flex;align-items:center;gap:8px;">
-        <button id="voice-toggle-btn" onclick="toggleVoice()" title="Toggle AI Voice" style="background:none;border:none;font-size:18px;cursor:pointer;color:#378ADD;">🔊</button>
         <button id="install-btn" onclick="installApp()" title="Install OG AI" style="display:none;align-items:center;gap:6px;background:#378ADD;color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;">⬇ Install</button>
       </div>
     </div>
@@ -240,7 +239,6 @@ background:#efefef;
         <input type="file" id="file-input" style="display:none" onchange="handleFileSelect(event)">
         <textarea id="user-input" rows="1" placeholder="Message OG AI…" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
         <button id="voice-btn" title="Voice Input" onclick="startListening()">🎤</button>
-        <button id="stop-voice-btn" title="Stop Speaking" onclick="if(currentAudio){currentAudio.pause();currentAudio=null;this.style.display='none';}" style="width:28px;height:28px;border:none;background:none;cursor:pointer;font-size:18px;border-radius:6px;display:none">🔇</button>
         <button id="send-btn" onclick="handleSendBtnClick()" aria-label="Send">↑</button>
       </div>
     </div>
@@ -310,44 +308,6 @@ let resendCooldown = false;
 let activeAbortController = null;
 let wasStopped = false;
 let stopTyping = false;
-let voiceEnabled = true;
-let currentAudio = null;
-
-window.toggleVoice = function() {
-  voiceEnabled = !voiceEnabled;
-  const btn = document.getElementById('voice-toggle-btn');
-  btn.textContent = voiceEnabled ? '🔊' : '🔇';
-  btn.style.color = voiceEnabled ? '#378ADD' : '#bbb';
-  if (!voiceEnabled && currentAudio) {
-    currentAudio.pause();
-    currentAudio = null;
-  }
-};
-
-async function speakText(text) {
-  if (!voiceEnabled) return;
-  const clean = text.replace(/[*_`#~]/g, '').replace(/\[.*?\]\(.*?\)/g, '').trim();
-  if (!clean) return;
-  try {
-    if (currentAudio) { currentAudio.pause(); currentAudio = null; }
-    const res = await fetch('/.netlify/functions/speak', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: clean })
-    });
-    if (!res.ok) throw new Error('Voice error');
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    currentAudio = new Audio(url);
-    currentAudio.play();
-    currentAudio.onended = () => {
-      document.getElementById('stop-voice-btn').style.display = 'none';
-    };
-    document.getElementById('stop-voice-btn').style.display = 'inline-flex';
-  } catch(e) {
-    console.error('Voice error:', e);
-  }
-}
 
 const getPersona = () => localStorage.getItem('og-persona') || '';
 
@@ -792,7 +752,6 @@ window.sendMessage = async function() {
     input.focus();
     return;
   }
-  speakText(reply);
   chatMessages.push({ role: 'ai', content: reply });
   try {
     const title = chatMessages[0]?.content?.slice(0,45) + (chatMessages[0]?.content?.length > 45 ? '…' : '') || 'Conversation';
