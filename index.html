@@ -148,7 +148,6 @@ body,.screen,#app-screen{width:100vw;height:100vh;height:100dvh}
 #main>div:first-child{padding-top:max(10px,env(safe-area-inset-top))}
 }
 
-
 #upload-btn,#voice-btn{
 width:28px;
 height:28px;
@@ -161,7 +160,6 @@ border-radius:6px;
 #upload-btn:hover,#voice-btn:hover{
 background:#efefef;
 }
-
 </style>
 </head>
 <body>
@@ -221,10 +219,13 @@ background:#efefef;
     </div>
   </div>
   <div id="main">
-<div id="top-bar" style="padding:10px;border-bottom:.5px solid #e0e0e0;background:#f9f9f9;display:flex;align-items:center;justify-content:space-between;">
-  <button id="menu-btn" onclick="toggleSidebar()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#555;">☰</button>
-  <button id="install-btn" onclick="installApp()" title="Install OG AI" style="display:none;align-items:center;gap:6px;background:#378ADD;color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;">⬇ Install</button>
-</div>
+    <div id="top-bar" style="padding:10px;border-bottom:.5px solid #e0e0e0;background:#f9f9f9;display:flex;align-items:center;justify-content:space-between;">
+      <button id="menu-btn" onclick="toggleSidebar()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#555;">☰</button>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button id="voice-toggle-btn" onclick="toggleVoice()" title="Toggle AI Voice" style="background:none;border:none;font-size:18px;cursor:pointer;color:#378ADD;">🔊</button>
+        <button id="install-btn" onclick="installApp()" title="Install OG AI" style="display:none;align-items:center;gap:6px;background:#378ADD;color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;">⬇ Install</button>
+      </div>
+    </div>
     <div id="chat-title">New conversation</div>
     <div id="messages" aria-live="polite"></div>
     <div id="input-area">
@@ -235,14 +236,12 @@ background:#efefef;
         <button id="attach-remove" onclick="clearAttachment()" title="Remove file" style="background:none;border:none;font-size:13px;color:#bbb;cursor:pointer;flex-shrink:0;padding:2px">✕</button>
       </div>
       <div id="input-row">
-        
-<button id="upload-btn" title="Upload file" onclick="document.getElementById('file-input').click()">📎</button>
-<input type="file" id="file-input" style="display:none" onchange="handleFileSelect(event)">
-<textarea id="user-input" rows="1" placeholder="Message OG AI…" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
-<button id="voice-btn" title="Voice Input" onclick="startListening()">🎤</button>
-<button id="stop-voice-btn" title="Stop Speaking" onclick="if(currentAudio){currentAudio.pause();currentAudio=null;this.style.display='none';}" style="width:28px;height:28px;border:none;background:none;cursor:pointer;font-size:18px;border-radius:6px;display:none">🔇</button>
-<button id="send-btn" onclick="handleSendBtnClick()" aria-label="Send">↑</button>
-
+        <button id="upload-btn" title="Upload file" onclick="document.getElementById('file-input').click()">📎</button>
+        <input type="file" id="file-input" style="display:none" onchange="handleFileSelect(event)">
+        <textarea id="user-input" rows="1" placeholder="Message OG AI…" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+        <button id="voice-btn" title="Voice Input" onclick="startListening()">🎤</button>
+        <button id="stop-voice-btn" title="Stop Speaking" onclick="if(currentAudio){currentAudio.pause();currentAudio=null;this.style.display='none';}" style="width:28px;height:28px;border:none;background:none;cursor:pointer;font-size:18px;border-radius:6px;display:none">🔇</button>
+        <button id="send-btn" onclick="handleSendBtnClick()" aria-label="Send">↑</button>
       </div>
     </div>
   </div>
@@ -253,30 +252,24 @@ background:#efefef;
         <h2>⚙ Settings</h2>
         <button class="modal-x" onclick="closeSettings()">✕</button>
       </div>
-
       <div class="modal-field">
         <label>Groq API Key</label>
         <input type="password" id="s-groq" placeholder="gsk_… (leave blank for default)">
         <div class="modal-note">Leave blank to use the built-in key.</div>
       </div>
-
       <hr class="modal-divider">
-
       <div class="modal-field" id="settings-install-field">
         <label>App</label>
         <button id="settings-install-btn" onclick="installApp()" style="display:none;align-items:center;gap:6px;background:#378ADD;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;">⬇ Install OG AI</button>
         <div class="modal-note" id="settings-install-note"></div>
       </div>
-
       <hr class="modal-divider">
-
       <div class="modal-field">
         <label>✦ AI Personalization</label>
         <textarea id="s-persona" placeholder="Customize how the AI behaves. Examples:&#10;• Always respond in bullet points&#10;• Say 'I don't know' for every question&#10;• Respond only in Spanish&#10;• Always be very sarcastic&#10;• Keep all answers under 2 sentences"></textarea>
         <div class="modal-note">The AI will follow these instructions in every message. Leave blank for default behavior.</div>
         <div class="persona-active" id="persona-active">✦ Custom persona is active</div>
       </div>
-
       <div style="display:flex;align-items:center;margin-top:4px">
         <button class="modal-save" onclick="saveSettings()">Save settings</button>
         <span class="modal-saved" id="modal-saved">✓ Saved!</span>
@@ -294,6 +287,7 @@ import {
 import {
   getDatabase, ref, set, get, push, remove, onValue
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
+
 const FB = {
   apiKey: "AIzaSyByrkppBgTMYb8vsDcWnbJAryPqq9CDafs",
   authDomain: "og-ai-70e8f.firebaseapp.com",
@@ -303,22 +297,6 @@ const FB = {
   messagingSenderId: "85695921452",
   appId: "1:85695921452:web:47fd45ccf696556dbac089"
 };
-
-
-// Detect image requests
-function isImagePrompt(text){
-  const t = text.toLowerCase();
-  return [
-    "generate an image",
-    "create an image",
-    "make an image",
-    "draw",
-    "illustrate",
-    "generate a picture",
-    "create a picture",
-    "make a picture"
-  ].some(v => t.includes(v));
-}
 
 const fbApp = initializeApp(FB);
 const auth  = getAuth(fbApp);
@@ -332,8 +310,19 @@ let resendCooldown = false;
 let activeAbortController = null;
 let wasStopped = false;
 let stopTyping = false;
-  let voiceEnabled = true;
+let voiceEnabled = true;
 let currentAudio = null;
+
+window.toggleVoice = function() {
+  voiceEnabled = !voiceEnabled;
+  const btn = document.getElementById('voice-toggle-btn');
+  btn.textContent = voiceEnabled ? '🔊' : '🔇';
+  btn.style.color = voiceEnabled ? '#378ADD' : '#bbb';
+  if (!voiceEnabled && currentAudio) {
+    currentAudio.pause();
+    currentAudio = null;
+  }
+};
 
 async function speakText(text) {
   if (!voiceEnabled) return;
@@ -356,10 +345,9 @@ async function speakText(text) {
     };
     document.getElementById('stop-voice-btn').style.display = 'inline-flex';
   } catch(e) {
-    console.warn('Voice error:', e);
+    console.error('Voice error:', e);
   }
 }
-
 
 const getPersona = () => localStorage.getItem('og-persona') || '';
 
@@ -430,56 +418,32 @@ window.doSignup = async function() {
   const err   = document.getElementById('signup-err');
   const btn   = document.getElementById('signup-btn');
   const succ  = document.getElementById('signup-success');
-
   err.textContent = '';
   succ.style.display = 'none';
-
-  if (!email || !pass) {
-    err.textContent = 'Please fill in all fields.';
-    return;
-  }
-
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    err.textContent = 'Please enter a valid email address.';
-    return;
-  }
-
-  if (pass.length < 6) {
-    err.textContent = 'Password must be at least 6 characters.';
-    return;
-  }
-
+  if (!email || !pass) { err.textContent = 'Please fill in all fields.'; return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { err.textContent = 'Please enter a valid email address.'; return; }
+  if (pass.length < 6) { err.textContent = 'Password must be at least 6 characters.'; return; }
   btn.disabled = true;
   btn.textContent = 'Creating account…';
-
   try {
-    // 1. CREATE AUTH USER
     const cred = await createUserWithEmailAndPassword(auth, email, pass);
     console.log("✅ AUTH USER CREATED:", cred.user.uid);
-
-    // 2. SEND EMAIL VERIFICATION
     await sendEmailVerification(cred.user);
     console.log("📧 Verification email sent");
-
-    // 3. WRITE TO DATABASE (FIXED + DEBUGGED)
     try {
       await set(ref(db, 'users/' + cred.user.uid + '/profile'), {
         email: email,
         createdAt: Date.now(),
         uid: cred.user.uid
       });
-
       console.log("✅ DB WRITE SUCCESS");
     } catch (e) {
       console.error("❌ DB WRITE FAILED:", e);
       err.textContent = "Database error: " + e.message;
     }
-
-    // 4. UI SUCCESS STATE
     succ.style.display = 'block';
     btn.disabled = false;
     btn.textContent = 'Resend confirmation email';
-
   } catch (e) {
     console.error("❌ SIGNUP ERROR:", e);
     err.textContent = authErr(e.code);
@@ -524,8 +488,8 @@ window.doSignOut = async function() {
 };
 
 function initApp() {
- document.getElementById("sidebar").classList.remove("open");
- document.getElementById("main").classList.remove("shift");
+  document.getElementById("sidebar").classList.remove("open");
+  document.getElementById("main").classList.remove("shift");
   document.getElementById('user-av').textContent = (currentUser.email[0] || '?').toUpperCase();
   document.getElementById('user-em').textContent = currentUser.email;
   resetMessages();
@@ -602,10 +566,7 @@ function fmt(text) {
   `<pre class="code-block">
     <button class="copy-btn" onclick="copyCode(this)">📋 Copy</button>
     <code>${c.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').trimEnd()}</code>
-  </pre>`
-);
-
-
+  </pre>`);
   text = text.replace(/`([^`\n]+)`/g, (_, c) => `<code>${c.replace(/</g,'&lt;')}</code>`);
   text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
   text = text.replace(/\*(.+?)\*/g, '<em>$1</em>');
@@ -628,124 +589,64 @@ function appendBubble(role, content, scroll=true, attachName=null) {
   d.innerHTML = `<div class="av ${role}">${role==='ai'?'✦':'U'}</div><div class="bubble">${tagHtml}${html}</div>`;
   wrap.appendChild(d);
   if (scroll) wrap.scrollTop = wrap.scrollHeight;
-  
   return d.querySelector('.bubble');
 }
 
-
-  let typingAnimation;
+let typingAnimation;
 
 function getThinkingStatus(prompt = "") {
-    prompt = prompt.toLowerCase();
-
-    if (pendingAttachment)
-        return "📂 Processing file";
-
-    if (prompt.startsWith("/"))
-        return "⚡ Running command";
-
-    if (
-    prompt.includes("image") ||
-    prompt.includes("draw") ||
-    prompt.includes("picture") ||
-    prompt.includes("photo") ||
-    prompt.includes("art") ||
-    prompt.includes("illustration") ||
-    prompt.includes("logo")
-)
-    return "🎨 Generating image";
-
-    if (
-        prompt.includes("code") ||
-        prompt.includes("html") ||
-        prompt.includes("css") ||
-        prompt.includes("javascript") ||
-        prompt.includes("python") ||
-        prompt.includes("java")
-    )
-        return "💻 Writing code";
-
-    if (
-        prompt.includes("math") ||
-        prompt.includes("calculate") ||
-        prompt.includes("solve")
-    )
-        return "🧮 Calculating";
-
-    if (
-        prompt.includes("summary") ||
-        prompt.includes("summarize")
-    )
-        return "📊 Summarizing";
-
-    return "🧠 Thinking";
+  prompt = prompt.toLowerCase();
+  if (pendingAttachment) return "📂 Processing file";
+  if (prompt.startsWith("/")) return "⚡ Running command";
+  if (prompt.includes("image")||prompt.includes("draw")||prompt.includes("picture")||prompt.includes("photo")||prompt.includes("art")||prompt.includes("illustration")||prompt.includes("logo")) return "🎨 Generating image";
+  if (prompt.includes("code")||prompt.includes("html")||prompt.includes("css")||prompt.includes("javascript")||prompt.includes("python")||prompt.includes("java")) return "💻 Writing code";
+  if (prompt.includes("math")||prompt.includes("calculate")||prompt.includes("solve")) return "🧮 Calculating";
+  if (prompt.includes("summary")||prompt.includes("summarize")) return "📊 Summarizing";
+  return "🧠 Thinking";
 }
 
 function showTyping(prompt = "") {
-    const es = document.getElementById("empty-state");
-    if (es) es.remove();
-
-    const wrap = document.getElementById("messages");
-
-    const d = document.createElement("div");
-    d.id = "typing";
-    d.className = "msg ai";
-
-    d.innerHTML = `
-        <div class="av ai">✦</div>
-        <div class="bubble">
-            <span id="typing-status"></span>
-        </div>
-    `;
-
-    wrap.appendChild(d);
-
-    const status = getThinkingStatus(prompt);
-
-    const span = document.getElementById("typing-status");
-
-    let dots = 1;
-
-    span.textContent = status + ".";
-
-    typingAnimation = setInterval(() => {
-        dots++;
-        if (dots > 3) dots = 1;
-        span.textContent = status + ".".repeat(dots);
-    }, 400);
-
-    wrap.scrollTop = wrap.scrollHeight;
+  const es = document.getElementById("empty-state");
+  if (es) es.remove();
+  const wrap = document.getElementById("messages");
+  const d = document.createElement("div");
+  d.id = "typing";
+  d.className = "msg ai";
+  d.innerHTML = `<div class="av ai">✦</div><div class="bubble"><span id="typing-status"></span></div>`;
+  wrap.appendChild(d);
+  const status = getThinkingStatus(prompt);
+  const span = document.getElementById("typing-status");
+  let dots = 1;
+  span.textContent = status + ".";
+  typingAnimation = setInterval(() => {
+    dots++;
+    if (dots > 3) dots = 1;
+    span.textContent = status + ".".repeat(dots);
+  }, 400);
+  wrap.scrollTop = wrap.scrollHeight;
 }
- function removeTyping() {
-    clearInterval(typingAnimation);
 
-    const t = document.getElementById("typing");
-
-    if (t) t.remove();
+function removeTyping() {
+  clearInterval(typingAnimation);
+  const t = document.getElementById("typing");
+  if (t) t.remove();
 }
 
 async function typeWriter(bubble, text) {
-    for (let i = 1; i <= text.length; i++) {
-        bubble.innerHTML = fmt(text.substring(0, i));
-
-        document.getElementById("messages").scrollTop =
-            document.getElementById("messages").scrollHeight;
-
-        await new Promise(resolve => setTimeout(resolve, 10));
-    }
-
-    // Ensure the final formatted message is displayed
-    bubble.innerHTML = fmt(text);
+  for (let i = 1; i <= text.length; i++) {
+    bubble.innerHTML = fmt(text.substring(0, i));
+    document.getElementById("messages").scrollTop = document.getElementById("messages").scrollHeight;
+    await new Promise(resolve => setTimeout(resolve, 10));
+  }
+  bubble.innerHTML = fmt(text);
 }
 
 window.sendSuggestion = t => { document.getElementById('user-input').value = t; sendMessage(); };
 window.handleKey = e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } };
 window.autoResize = el => { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 100) + 'px'; };
 
-/* ---------- File attachment ---------- */
-let pendingAttachment = null; // { name, content }
-const MAX_FILE_CHARS = 12000; // keep well inside Groq's context budget alongside chat history
-
+let pendingAttachment = null;
+const MAX_FILE_CHARS = 12000;
 const READABLE_EXT = /\.(txt|md|markdown|csv|tsv|json|js|jsx|ts|tsx|py|java|c|cpp|h|hpp|cs|go|rs|rb|php|html|htm|css|scss|xml|yml|yaml|ini|cfg|conf|sh|bat|sql|log|svg)$/i;
 
 function setAttachStatus(text, isError) {
@@ -763,43 +664,24 @@ window.clearAttachment = function() {
 window.handleFileSelect = function(event) {
   const file = event.target.files && event.target.files[0];
   if (!file) return;
-
   const preview = document.getElementById('attach-preview');
   const nameEl  = document.getElementById('attach-name');
   preview.style.display = 'flex';
   nameEl.textContent = file.name;
   setAttachStatus('Reading…', false);
   pendingAttachment = null;
-
   const looksTextual = READABLE_EXT.test(file.name) || file.type.startsWith('text/') || file.type === 'application/json';
-
-  if (!looksTextual) {
-    setAttachStatus('Unsupported — text files only', true);
-    pendingAttachment = null;
-    document.getElementById('file-input').value = '';
-    return;
-  }
-  if (file.size > 2 * 1024 * 1024) {
-    setAttachStatus('Too large (max 2MB)', true);
-    document.getElementById('file-input').value = '';
-    return;
-  }
-
+  if (!looksTextual) { setAttachStatus('Unsupported — text files only', true); pendingAttachment = null; document.getElementById('file-input').value = ''; return; }
+  if (file.size > 2 * 1024 * 1024) { setAttachStatus('Too large (max 2MB)', true); document.getElementById('file-input').value = ''; return; }
   const reader = new FileReader();
   reader.onload = () => {
     let text = String(reader.result || '');
     let truncated = false;
-    if (text.length > MAX_FILE_CHARS) {
-      text = text.slice(0, MAX_FILE_CHARS);
-      truncated = true;
-    }
+    if (text.length > MAX_FILE_CHARS) { text = text.slice(0, MAX_FILE_CHARS); truncated = true; }
     pendingAttachment = { name: file.name, content: text };
     setAttachStatus(truncated ? `Ready · truncated to ${MAX_FILE_CHARS.toLocaleString()} chars` : 'Ready', false);
   };
-  reader.onerror = () => {
-    setAttachStatus('Failed to read file', true);
-    pendingAttachment = null;
-  };
+  reader.onerror = () => { setAttachStatus('Failed to read file', true); pendingAttachment = null; };
   reader.readAsText(file);
 };
 
@@ -807,16 +689,14 @@ window.sendMessage = async function() {
   if (isStreaming || !currentUser) return;
   const input = document.getElementById('user-input');
   const text  = input.value.trim();
-  const attachment = pendingAttachment; // snapshot before clearing
+  const attachment = pendingAttachment;
   if (!text && !attachment) return;
   isStreaming = true;
   wasStopped = false;
   input.value = ''; input.style.height = 'auto'; input.disabled = true;
   setSendBtnStopMode(true);
   window.clearAttachment();
-
   const displayText = text || `Please look at the attached file (${attachment.name}).`;
-
   if (!currentChatId) {
     try {
       const newRef = push(ref(db, 'users/' + currentUser.uid + '/chats'));
@@ -831,56 +711,42 @@ window.sendMessage = async function() {
       return;
     }
   }
-
   let chatMessages = [];
   try {
     const snap = await get(ref(db, 'users/' + currentUser.uid + '/chats/' + currentChatId + '/messages'));
     const val = snap.val();
     chatMessages = Array.isArray(val) ? val : [];
   } catch(_) { chatMessages = []; }
-
   const storedMsg = { role: 'user', content: displayText };
   if (attachment) storedMsg.attachName = attachment.name;
   chatMessages.push(storedMsg);
   appendBubble('user', displayText, true, attachment ? attachment.name : null);
   showTyping(displayText);
-
   const history = chatMessages.slice(-20).map(m => ({
     role: m.role === 'ai' ? 'assistant' : 'user',
     content: m.content
   }));
-  // Fold the file's text into the final outgoing message only — not stored in
-  // chat history — so the AI can read it now without bloating every future turn.
   if (attachment && history.length) {
     const last = history[history.length - 1];
     last.content = `${last.content}\n\n[Attached file: ${attachment.name}]\n---\n${attachment.content}\n---`;
   }
-
   let reply = '';
-
   activeAbortController = new AbortController();
-
   try {
     const res = await fetch('/.netlify/functions/chat', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: { 'Content-Type': 'application/json' },
       signal: activeAbortController.signal,
       body: JSON.stringify({
         model: 'llama-3.1-8b-instant',
         max_tokens: 1024,
         temperature: 0.7,
         messages: [
-          {
-            role: 'system',
-            content: buildSystemPrompt()
-          },
+          { role: 'system', content: buildSystemPrompt() },
           ...history
         ]
       })
     });
-
     const data = await res.json();
     if (!res.ok) throw new Error(data.error?.message || 'API error ' + res.status);
     reply = data.choices?.[0]?.message?.content?.trim() || 'No response received.';
@@ -905,37 +771,20 @@ window.sendMessage = async function() {
     reply = 'Error: ' + (e.message || 'Could not reach Groq. Check your connection or API key in Settings.');
   }
   activeAbortController = null;
-
   removeTyping();
-
-const bubble = appendBubble("ai", "");
-await typeWriter(bubble, reply);
-speakText(reply);
-
-chatMessages.push({ role: 'ai', content: reply });
-
-try {
-    const title = chatMessages[0]?.content?.slice(0,45) +
-        (chatMessages[0]?.content?.length > 45 ? '…' : '') ||
-        'Conversation';
-
-    await set(
-        ref(db, 'users/' + currentUser.uid + '/chats/' + currentChatId),
-        {
-            title,
-            messages: chatMessages,
-            ts: Date.now()
-        }
-    );
-} catch (_) {}
-
-document.querySelectorAll('.chat-item')
-    .forEach(i => i.classList.toggle('active', i.dataset.id === currentChatId));
-
-isStreaming = false;
-input.disabled = false;
-setSendBtnStopMode(false);
-input.focus();
+  const bubble = appendBubble("ai", "");
+  await typeWriter(bubble, reply);
+  speakText(reply);
+  chatMessages.push({ role: 'ai', content: reply });
+  try {
+    const title = chatMessages[0]?.content?.slice(0,45) + (chatMessages[0]?.content?.length > 45 ? '…' : '') || 'Conversation';
+    await set(ref(db, 'users/' + currentUser.uid + '/chats/' + currentChatId), { title, messages: chatMessages, ts: Date.now() });
+  } catch (_) {}
+  document.querySelectorAll('.chat-item').forEach(i => i.classList.toggle('active', i.dataset.id === currentChatId));
+  isStreaming = false;
+  input.disabled = false;
+  setSendBtnStopMode(false);
+  input.focus();
 };
 
 function setSendBtnStopMode(isStop) {
@@ -956,28 +805,20 @@ function setSendBtnStopMode(isStop) {
 }
 
 window.handleSendBtnClick = function() {
-  if (isStreaming) {
-    stopGenerating();
-  } else {
-    sendMessage();
-  }
+  if (isStreaming) { stopGenerating(); } else { sendMessage(); }
 };
 
 window.stopGenerating = function() {
-  if (activeAbortController) {
-    wasStopped = true;
-    activeAbortController.abort();
-  }
+  if (activeAbortController) { wasStopped = true; activeAbortController.abort(); }
 };
 
-window.toggleSidebar=function(){
-const s=document.getElementById('sidebar');
-const m=document.getElementById('main');
-s.classList.toggle('open');
-m.classList.toggle('shift');
+window.toggleSidebar = function() {
+  const s = document.getElementById('sidebar');
+  const m = document.getElementById('main');
+  s.classList.toggle('open');
+  m.classList.toggle('shift');
 };
 
-/* ---------- PWA install ---------- */
 let deferredInstallPrompt = null;
 const installBtn = document.getElementById('install-btn');
 const settingsInstallBtn  = document.getElementById('settings-install-btn');
@@ -992,13 +833,10 @@ function isIOS() {
 }
 
 function refreshInstallButton() {
-  // Top bar button
   if (isStandalone()) { installBtn.style.display = 'none'; }
   else if (deferredInstallPrompt) { installBtn.style.display = 'flex'; }
   else if (isIOS()) { installBtn.style.display = 'flex'; installBtn.textContent = '⬇ Install'; }
   else { installBtn.style.display = 'none'; }
-
-  // Settings modal button + note
   if (isStandalone()) {
     settingsInstallBtn.style.display = 'none';
     settingsInstallNote.textContent = '✓ Already installed on this device.';
@@ -1035,10 +873,7 @@ window.installApp = async function() {
     refreshInstallButton();
     return;
   }
-  if (isIOS()) {
-    showIosInstallTip();
-    return;
-  }
+  if (isIOS()) { showIosInstallTip(); return; }
   showIosInstallTip('Use your browser menu (⋮ or share icon) and choose "Install app" or "Add to Home Screen".');
 };
 
@@ -1081,48 +916,34 @@ window.saveSettings  = function() {
   setTimeout(() => { saved.style.display = 'none'; closeSettings(); }, 1200);
 };
 
-window.speakLastMessage=function(){
-const bubbles=document.querySelectorAll(".msg.ai .bubble");
-if(!bubbles.length)return;
-speechSynthesis.cancel();
-const u=new SpeechSynthesisUtterance(bubbles[bubbles.length-1].innerText);
-speechSynthesis.speak(u);
-};
-
-
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-let recognition=null;
+let recognition = null;
 
-if(SpeechRecognition){
- recognition=new SpeechRecognition();
- recognition.lang='en-US';
- recognition.continuous=false;
- recognition.interimResults=true;
-
- recognition.onresult=function(event){
-   let transcript='';
-   for(let i=event.resultIndex;i<event.results.length;i++){
-      transcript+=event.results[i][0].transcript;
-   }
-   const box=document.getElementById('user-input');
-   box.value=transcript;
-   if(typeof autoResize==='function') autoResize(box);
- };
-
- recognition.onend=function(){
-   const b=document.getElementById('voice-btn');
-   if(b) b.textContent='🎤';
- };
+if (SpeechRecognition) {
+  recognition = new SpeechRecognition();
+  recognition.lang = 'en-US';
+  recognition.continuous = false;
+  recognition.interimResults = true;
+  recognition.onresult = function(event) {
+    let transcript = '';
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      transcript += event.results[i][0].transcript;
+    }
+    const box = document.getElementById('user-input');
+    box.value = transcript;
+    if (typeof autoResize === 'function') autoResize(box);
+  };
+  recognition.onend = function() {
+    const b = document.getElementById('voice-btn');
+    if (b) b.textContent = '🎤';
+  };
 }
 
-window.startListening=function(){
- if(!recognition){
-   alert("Speech recognition isn't supported in this browser.");
-   return;
- }
- const b=document.getElementById('voice-btn');
- b.textContent='🔴';
- recognition.start();
+window.startListening = function() {
+  if (!recognition) { alert("Speech recognition isn't supported in this browser."); return; }
+  const b = document.getElementById('voice-btn');
+  b.textContent = '🔴';
+  recognition.start();
 };
 
 </script>
@@ -1137,18 +958,13 @@ if ("serviceWorker" in navigator) {
 window.copyCode = async function(btn) {
   const block = btn.closest(".code-block");
   if (!block) return;
-
   const codeEl = block.querySelector("code");
   if (!codeEl) return;
-
   const code = codeEl.innerText;
-
   try {
     await navigator.clipboard.writeText(code);
-
     btn.textContent = "✔ Copied!";
     setTimeout(() => btn.textContent = "📋 Copy", 1200);
-
   } catch (err) {
     const textarea = document.createElement("textarea");
     textarea.value = code;
@@ -1156,7 +972,6 @@ window.copyCode = async function(btn) {
     textarea.select();
     document.execCommand("copy");
     document.body.removeChild(textarea);
-
     btn.textContent = "✔ Copied!";
     setTimeout(() => btn.textContent = "📋 Copy", 1200);
   }
