@@ -240,6 +240,7 @@ background:#efefef;
 <input type="file" id="file-input" style="display:none" onchange="handleFileSelect(event)">
 <textarea id="user-input" rows="1" placeholder="Message OG AI…" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
 <button id="voice-btn" title="Voice Input" onclick="startListening()">🎤</button>
+<button id="stop-voice-btn" title="Stop Speaking" onclick="if(currentAudio){currentAudio.pause();currentAudio=null;this.style.display='none';}" style="width:28px;height:28px;border:none;background:none;cursor:pointer;font-size:18px;border-radius:6px;display:none">🔇</button>
 <button id="send-btn" onclick="handleSendBtnClick()" aria-label="Send">↑</button>
 
       </div>
@@ -331,6 +332,33 @@ let resendCooldown = false;
 let activeAbortController = null;
 let wasStopped = false;
 let stopTyping = false;
+  let voiceEnabled = true;
+let currentAudio = null;
+
+async function speakText(text) {
+  if (!voiceEnabled) return;
+  const clean = text.replace(/[*_`#~]/g, '').replace(/\[.*?\]\(.*?\)/g, '').trim();
+  if (!clean) return;
+  try {
+    if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+    const res = await fetch('/.netlify/functions/speak', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: clean })
+    });
+    if (!res.ok) throw new Error('Voice error');
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    currentAudio = new Audio(url);
+    currentAudio.play();
+    currentAudio.onended = () => {
+      document.getElementById('stop-voice-btn').style.display = 'none';
+    };
+    document.getElementById('stop-voice-btn').style.display = 'inline-flex';
+  } catch(e) {
+    console.warn('Voice error:', e);
+  }
+}
 
 
 const getPersona = () => localStorage.getItem('og-persona') || '';
@@ -882,6 +910,7 @@ window.sendMessage = async function() {
 
 const bubble = appendBubble("ai", "");
 await typeWriter(bubble, reply);
+speakText(reply);
 
 chatMessages.push({ role: 'ai', content: reply });
 
