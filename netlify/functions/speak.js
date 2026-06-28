@@ -4,6 +4,12 @@ exports.handler = async function(event) {
   }
 
   try {
+    const apiKey = process.env.ELEVEN_LABS_API_KEY;
+    if (!apiKey) {
+      console.error('Missing ELEVEN_LABS_API_KEY env var');
+      return { statusCode: 500, body: 'Server misconfigured: ELEVEN_LABS_API_KEY is not set' };
+    }
+
     const { text } = JSON.parse(event.body);
     const VOICE_ID = 'ErXwobaYiN019PkySvjV';
 
@@ -11,7 +17,7 @@ exports.handler = async function(event) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'xi-api-key': process.env.ELEVEN_LABS_API_KEY
+        'xi-api-key': apiKey
       },
       body: JSON.stringify({
         text: text,
@@ -21,7 +27,9 @@ exports.handler = async function(event) {
     });
 
     if (!res.ok) {
-      return { statusCode: 500, body: 'ElevenLabs error' };
+      const errText = await res.text();
+      console.error('ElevenLabs error', res.status, errText);
+      return { statusCode: 500, body: `ElevenLabs error ${res.status}: ${errText}` };
     }
 
     const buffer = await res.arrayBuffer();
