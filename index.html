@@ -633,7 +633,12 @@ function removeTyping() {
 }
 
 async function typeWriter(bubble, text) {
+  stopTyping = false;
   for (let i = 1; i <= text.length; i++) {
+    if (stopTyping) {
+      bubble.innerHTML = fmt(text.substring(0, i));
+      return;
+    }
     bubble.innerHTML = fmt(text.substring(0, i));
     document.getElementById("messages").scrollTop = document.getElementById("messages").scrollHeight;
     await new Promise(resolve => setTimeout(resolve, 10));
@@ -774,6 +779,19 @@ window.sendMessage = async function() {
   removeTyping();
   const bubble = appendBubble("ai", "");
   await typeWriter(bubble, reply);
+  if (stopTyping) {
+    stopTyping = false;
+    chatMessages.push({ role: 'ai', content: bubble.textContent, stopped: true });
+    try {
+      const title = chatMessages[0]?.content?.slice(0,45) + (chatMessages[0]?.content?.length > 45 ? '…' : '') || 'Conversation';
+      await set(ref(db, 'users/' + currentUser.uid + '/chats/' + currentChatId), { title, messages: chatMessages, ts: Date.now() });
+    } catch (_) {}
+    isStreaming = false;
+    input.disabled = false;
+    setSendBtnStopMode(false);
+    input.focus();
+    return;
+  }
   speakText(reply);
   chatMessages.push({ role: 'ai', content: reply });
   try {
@@ -810,6 +828,7 @@ window.handleSendBtnClick = function() {
 
 window.stopGenerating = function() {
   if (activeAbortController) { wasStopped = true; activeAbortController.abort(); }
+  stopTyping = true;
 };
 
 window.toggleSidebar = function() {
