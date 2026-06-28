@@ -11,7 +11,7 @@ exports.handler = async function(event) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'xi-api-key': process.env.ELEVENLABS_API_KEY
+        'xi-api-key': process.env.ELEVEN_LABS_API_KEY
       },
       body: JSON.stringify({
         text: text,
