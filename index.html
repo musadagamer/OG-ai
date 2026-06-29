@@ -561,7 +561,7 @@ async function typeWriter(bubble, text) {
   for (let i = 1; i <= text.length; i++) {
     if (stopTyping) { bubble.innerHTML = fmt(text.substring(0, i)); return; }
     bubble.innerHTML = fmt(text.substring(0, i));
-    const isNearBottom = messages.scrollHeight - messages.scrollTop - messages.clientHeight < 200;
+    const isNearBottom = messages.scrollHeight - messages.scrollTop - messages.clientHeight < 600;
     if (isNearBottom) messages.scrollTop = messages.scrollHeight;
     await new Promise(resolve => setTimeout(resolve, 10));
   }
