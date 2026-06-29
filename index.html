@@ -308,6 +308,7 @@ let resendCooldown = false;
 let activeAbortController = null;
 let wasStopped = false;
 let stopTyping = false;
+let firstLoad = true;
 
 const getPersona = () => localStorage.getItem('og-persona') || '';
 
@@ -387,25 +388,18 @@ window.doSignup = async function() {
   btn.textContent = 'Creating account…';
   try {
     const cred = await createUserWithEmailAndPassword(auth, email, pass);
-    console.log("✅ AUTH USER CREATED:", cred.user.uid);
     await sendEmailVerification(cred.user);
-    console.log("📧 Verification email sent");
     try {
       await set(ref(db, 'users/' + cred.user.uid + '/profile'), {
-        email: email,
-        createdAt: Date.now(),
-        uid: cred.user.uid
+        email: email, createdAt: Date.now(), uid: cred.user.uid
       });
-      console.log("✅ DB WRITE SUCCESS");
     } catch (e) {
-      console.error("❌ DB WRITE FAILED:", e);
       err.textContent = "Database error: " + e.message;
     }
     succ.style.display = 'block';
     btn.disabled = false;
     btn.textContent = 'Resend confirmation email';
   } catch (e) {
-    console.error("❌ SIGNUP ERROR:", e);
     err.textContent = authErr(e.code);
     btn.disabled = false;
     btn.textContent = 'Create account & send confirmation';
@@ -442,6 +436,7 @@ window.checkVerified = async function() {
 window.doSignOut = async function() {
   if (chatUnsub) { chatUnsub(); chatUnsub = null; }
   currentChatId = null;
+  firstLoad = true;
   try { await fbSignOut(auth); } catch(_) {}
   document.getElementById('chat-list').innerHTML = '';
   resetMessages();
@@ -453,9 +448,19 @@ function initApp() {
   document.getElementById('user-av').textContent = (currentUser.email[0] || '?').toUpperCase();
   document.getElementById('user-em').textContent = currentUser.email;
   resetMessages();
+  firstLoad = true;
   if (chatUnsub) { chatUnsub(); chatUnsub = null; }
   chatUnsub = onValue(ref(db, 'users/' + currentUser.uid + '/chats'), snap => {
-    renderSidebar(snap.val() || {});
+    const data = snap.val() || {};
+    renderSidebar(data);
+    // Resume last chat on first load only
+    if (firstLoad) {
+      firstLoad = false;
+      const lastChatId = localStorage.getItem('og-last-chat-' + currentUser.uid);
+      if (lastChatId && data[lastChatId]) {
+        loadChat(lastChatId);
+      }
+    }
   }, e => console.warn('listener err', e));
 }
 
@@ -498,6 +503,7 @@ function resetMessages() {
 window.loadChat = async function(id) {
   if (isStreaming) return;
   currentChatId = id;
+  localStorage.setItem('og-last-chat-' + currentUser.uid, id);
   document.querySelectorAll('.chat-item').forEach(i => i.classList.toggle('active', i.dataset.id === id));
   document.getElementById('messages').innerHTML = '<div style="padding:20px;text-align:center;font-size:12px;color:#bbb">Loading…</div>';
   try {
@@ -518,7 +524,12 @@ window.loadChat = async function(id) {
 window.delChat = async function(e, id) {
   e.stopPropagation();
   try { await remove(ref(db, 'users/' + currentUser.uid + '/chats/' + id)); } catch(_) {}
-  if (currentChatId === id) { currentChatId = null; resetMessages(); document.getElementById('chat-title').textContent = 'New conversation'; }
+  if (currentChatId === id) {
+    currentChatId = null;
+    localStorage.removeItem('og-last-chat-' + currentUser.uid);
+    resetMessages();
+    document.getElementById('chat-title').textContent = 'New conversation';
+  }
 };
 
 function fmt(text) {
@@ -595,10 +606,7 @@ function removeTyping() {
 async function typeWriter(bubble, text) {
   stopTyping = false;
   for (let i = 1; i <= text.length; i++) {
-    if (stopTyping) {
-      bubble.innerHTML = fmt(text.substring(0, i));
-      return;
-    }
+    if (stopTyping) { bubble.innerHTML = fmt(text.substring(0, i)); return; }
     bubble.innerHTML = fmt(text.substring(0, i));
     document.getElementById("messages").scrollTop = document.getElementById("messages").scrollHeight;
     await new Promise(resolve => setTimeout(resolve, 10));
@@ -666,6 +674,7 @@ window.sendMessage = async function() {
     try {
       const newRef = push(ref(db, 'users/' + currentUser.uid + '/chats'));
       currentChatId = newRef.key;
+      localStorage.setItem('og-last-chat-' + currentUser.uid, currentChatId);
       const title = displayText.length > 45 ? displayText.slice(0,45) + '…' : displayText;
       await set(ref(db, 'users/' + currentUser.uid + '/chats/' + currentChatId), { title, messages: [], ts: Date.now() });
       document.getElementById('chat-title').textContent = title;
@@ -758,6 +767,7 @@ window.sendMessage = async function() {
     await set(ref(db, 'users/' + currentUser.uid + '/chats/' + currentChatId), { title, messages: chatMessages, ts: Date.now() });
   } catch (_) {}
   document.querySelectorAll('.chat-item').forEach(i => i.classList.toggle('active', i.dataset.id === currentChatId));
+  localStorage.setItem('og-last-chat-' + currentUser.uid, currentChatId);
   isStreaming = false;
   input.disabled = false;
   setSendBtnStopMode(false);
