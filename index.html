@@ -129,7 +129,6 @@ body{font-family:system-ui,sans-serif;background:var(--surface-0,#f5f5f5);color:
 .modal-save{padding:8px 18px;background:#378ADD;color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer;transition:opacity 0.15s;font-family:inherit}
 .modal-save:hover{opacity:0.88}
 .modal-saved{font-size:12px;color:#3B6D11;margin-left:8px;display:none}
-
 @media (max-width:768px){
 body,.screen,#app-screen{width:100vw;height:100vh;height:100dvh}
 #sidebar{height:100vh;height:100dvh;width:240px}
@@ -140,36 +139,20 @@ body,.screen,#app-screen{width:100vw;height:100vh;height:100dvh}
 #chat-title{font-size:14px}
 #input-area{padding:8px}
 }
-
 @supports (padding:max(0px)){
 #auth-screen,#verify-screen{padding-top:max(24px,env(safe-area-inset-top));padding-bottom:max(24px,env(safe-area-inset-bottom))}
 #sidebar-header{padding-top:max(12px,env(safe-area-inset-top))}
 #input-area{padding-bottom:max(10px,env(safe-area-inset-bottom))}
 #main>div:first-child{padding-top:max(10px,env(safe-area-inset-top))}
 }
-
-#upload-btn,#voice-btn{
-width:28px;
-height:28px;
-border:none;
-background:none;
-cursor:pointer;
-font-size:18px;
-border-radius:6px;
-}
-#upload-btn:hover,#voice-btn:hover{
-background:#efefef;
-}
+#upload-btn,#voice-btn{width:28px;height:28px;border:none;background:none;cursor:pointer;font-size:18px;border-radius:6px;}
+#upload-btn:hover,#voice-btn:hover{background:#efefef;}
 </style>
 </head>
 <body>
-
 <div id="auth-screen" class="screen">
   <div class="auth-card">
-    <div class="auth-logo">
-      <h1>✦ OG AI</h1>
-      <p>Your intelligent assistant</p>
-    </div>
+    <div class="auth-logo"><h1>✦ OG AI</h1><p>Your intelligent assistant</p></div>
     <div class="auth-tabs">
       <button class="auth-tab active" id="tab-login" onclick="switchTab('login')">Sign in</button>
       <button class="auth-tab" id="tab-signup" onclick="switchTab('signup')">Create account</button>
@@ -189,7 +172,6 @@ background:#efefef;
     </div>
   </div>
 </div>
-
 <div id="verify-screen" class="screen">
   <div class="verify-card">
     <div style="font-size:40px;margin-bottom:14px">📧</div>
@@ -203,7 +185,6 @@ background:#efefef;
     <button class="back-link" onclick="doSignOut()">← Back to sign in</button>
   </div>
 </div>
-
 <div id="app-screen" class="screen">
   <div id="sidebar">
     <div id="sidebar-header"><h1>✦ OG AI</h1></div>
@@ -214,9 +195,7 @@ background:#efefef;
     </div>
     <button id="new-chat-btn" onclick="newChat()">🗪 new chat</button>
     <div id="chat-list"></div>
-    <div class="sidebar-bottom">
-      <button class="settings-btn" onclick="openSettings()">⚙ Settings</button>
-    </div>
+    <div class="sidebar-bottom"><button class="settings-btn" onclick="openSettings()">⚙ Settings</button></div>
   </div>
   <div id="main">
     <div id="top-bar" style="padding:10px;border-bottom:.5px solid #e0e0e0;background:#f9f9f9;display:flex;align-items:center;justify-content:space-between;">
@@ -243,13 +222,9 @@ background:#efefef;
       </div>
     </div>
   </div>
-
   <div id="modal-overlay" onclick="overlayClick(event)">
     <div class="modal-card">
-      <div class="modal-head">
-        <h2>⚙ Settings</h2>
-        <button class="modal-x" onclick="closeSettings()">✕</button>
-      </div>
+      <div class="modal-head"><h2>⚙ Settings</h2><button class="modal-x" onclick="closeSettings()">✕</button></div>
       <div class="modal-field">
         <label>Groq API Key</label>
         <input type="password" id="s-groq" placeholder="gsk_… (leave blank for default)">
@@ -275,16 +250,10 @@ background:#efefef;
     </div>
   </div>
 </div>
-
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-import {
-  getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
-  sendEmailVerification, onAuthStateChanged, signOut as fbSignOut, reload
-} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-import {
-  getDatabase, ref, set, get, push, remove, onValue
-} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, onAuthStateChanged, signOut as fbSignOut, reload } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import { getDatabase, ref, set, get, push, remove, onValue } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
 
 const FB = {
   apiKey: "AIzaSyByrkppBgTMYb8vsDcWnbJAryPqq9CDafs",
@@ -297,13 +266,13 @@ const FB = {
 };
 
 const fbApp = initializeApp(FB);
-const auth  = getAuth(fbApp);
-const db    = getDatabase(fbApp);
+const auth = getAuth(fbApp);
+const db = getDatabase(fbApp);
 
-let currentUser   = null;
+let currentUser = null;
 let currentChatId = null;
-let isStreaming   = false;
-let chatUnsub     = null;
+let isStreaming = false;
+let chatUnsub = null;
 let resendCooldown = false;
 let activeAbortController = null;
 let wasStopped = false;
@@ -339,31 +308,31 @@ function show(name) {
 window.switchTab = function(tab) {
   document.getElementById('tab-login').classList.toggle('active', tab === 'login');
   document.getElementById('tab-signup').classList.toggle('active', tab === 'signup');
-  document.getElementById('login-form').style.display  = tab === 'login'  ? '' : 'none';
+  document.getElementById('login-form').style.display = tab === 'login' ? '' : 'none';
   document.getElementById('signup-form').style.display = tab === 'signup' ? '' : 'none';
-  document.getElementById('login-err').textContent  = '';
+  document.getElementById('login-err').textContent = '';
   document.getElementById('signup-err').textContent = '';
   document.getElementById('signup-success').style.display = 'none';
 };
 
 function authErr(code) {
   return ({
-    'auth/user-not-found':       'No account found with this email.',
-    'auth/wrong-password':       'Incorrect password.',
-    'auth/invalid-email':        'Please enter a valid email address.',
-    'auth/too-many-requests':    'Too many attempts. Please wait and try again.',
-    'auth/invalid-credential':   'Invalid email or password.',
+    'auth/user-not-found': 'No account found with this email.',
+    'auth/wrong-password': 'Incorrect password.',
+    'auth/invalid-email': 'Please enter a valid email address.',
+    'auth/too-many-requests': 'Too many attempts. Please wait and try again.',
+    'auth/invalid-credential': 'Invalid email or password.',
     'auth/email-already-in-use': 'An account with this email already exists.',
-    'auth/weak-password':        'Password must be at least 6 characters.',
+    'auth/weak-password': 'Password must be at least 6 characters.',
     'auth/network-request-failed': 'Network error. Check your connection.',
   })[code] || 'Something went wrong. Please try again.';
 }
 
 window.doLogin = async function() {
   const email = document.getElementById('login-email').value.trim();
-  const pass  = document.getElementById('login-pass').value;
-  const err   = document.getElementById('login-err');
-  const btn   = document.getElementById('login-btn');
+  const pass = document.getElementById('login-pass').value;
+  const err = document.getElementById('login-err');
+  const btn = document.getElementById('login-btn');
   err.textContent = '';
   if (!email || !pass) { err.textContent = 'Please fill in all fields.'; return; }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { err.textContent = 'Please enter a valid email address.'; return; }
@@ -375,34 +344,26 @@ window.doLogin = async function() {
 
 window.doSignup = async function() {
   const email = document.getElementById('signup-email').value.trim();
-  const pass  = document.getElementById('signup-pass').value;
-  const err   = document.getElementById('signup-err');
-  const btn   = document.getElementById('signup-btn');
-  const succ  = document.getElementById('signup-success');
-  err.textContent = '';
-  succ.style.display = 'none';
+  const pass = document.getElementById('signup-pass').value;
+  const err = document.getElementById('signup-err');
+  const btn = document.getElementById('signup-btn');
+  const succ = document.getElementById('signup-success');
+  err.textContent = ''; succ.style.display = 'none';
   if (!email || !pass) { err.textContent = 'Please fill in all fields.'; return; }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { err.textContent = 'Please enter a valid email address.'; return; }
   if (pass.length < 6) { err.textContent = 'Password must be at least 6 characters.'; return; }
-  btn.disabled = true;
-  btn.textContent = 'Creating account…';
+  btn.disabled = true; btn.textContent = 'Creating account…';
   try {
     const cred = await createUserWithEmailAndPassword(auth, email, pass);
     await sendEmailVerification(cred.user);
     try {
-      await set(ref(db, 'users/' + cred.user.uid + '/profile'), {
-        email: email, createdAt: Date.now(), uid: cred.user.uid
-      });
-    } catch (e) {
-      err.textContent = "Database error: " + e.message;
-    }
+      await set(ref(db, 'users/' + cred.user.uid + '/profile'), { email, createdAt: Date.now(), uid: cred.user.uid });
+    } catch(e) { err.textContent = "Database error: " + e.message; }
     succ.style.display = 'block';
-    btn.disabled = false;
-    btn.textContent = 'Resend confirmation email';
-  } catch (e) {
+    btn.disabled = false; btn.textContent = 'Resend confirmation email';
+  } catch(e) {
     err.textContent = authErr(e.code);
-    btn.disabled = false;
-    btn.textContent = 'Create account & send confirmation';
+    btn.disabled = false; btn.textContent = 'Create account & send confirmation';
   }
 };
 
@@ -435,8 +396,7 @@ window.checkVerified = async function() {
 
 window.doSignOut = async function() {
   if (chatUnsub) { chatUnsub(); chatUnsub = null; }
-  currentChatId = null;
-  firstLoad = true;
+  currentChatId = null; firstLoad = true;
   try { await fbSignOut(auth); } catch(_) {}
   document.getElementById('chat-list').innerHTML = '';
   resetMessages();
@@ -453,13 +413,10 @@ function initApp() {
   chatUnsub = onValue(ref(db, 'users/' + currentUser.uid + '/chats'), snap => {
     const data = snap.val() || {};
     renderSidebar(data);
-    // Resume last chat on first load only
     if (firstLoad) {
       firstLoad = false;
       const lastChatId = localStorage.getItem('og-last-chat-' + currentUser.uid);
-      if (lastChatId && data[lastChatId]) {
-        loadChat(lastChatId);
-      }
+      if (lastChatId && data[lastChatId]) loadChat(lastChatId);
     }
   }, e => console.warn('listener err', e));
 }
@@ -551,12 +508,8 @@ function appendBubble(role, content, scroll=true, attachName=null) {
   const wrap = document.getElementById('messages');
   const d = document.createElement('div');
   d.className = 'msg ' + role;
-  const html = role === 'ai'
-    ? fmt(content)
-    : content.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  const tagHtml = attachName
-    ? `<div style="font-size:11px;color:#999;margin-bottom:4px;display:flex;align-items:center;gap:4px">📄 ${attachName.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</div>`
-    : '';
+  const html = role === 'ai' ? fmt(content) : content.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const tagHtml = attachName ? `<div style="font-size:11px;color:#999;margin-bottom:4px;display:flex;align-items:center;gap:4px">📄 ${attachName.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</div>` : '';
   d.innerHTML = `<div class="av ${role}">${role==='ai'?'✦':'U'}</div><div class="bubble">${tagHtml}${html}</div>`;
   wrap.appendChild(d);
   if (scroll) wrap.scrollTop = wrap.scrollHeight;
@@ -581,8 +534,7 @@ function showTyping(prompt = "") {
   if (es) es.remove();
   const wrap = document.getElementById("messages");
   const d = document.createElement("div");
-  d.id = "typing";
-  d.className = "msg ai";
+  d.id = "typing"; d.className = "msg ai";
   d.innerHTML = `<div class="av ai">✦</div><div class="bubble"><span id="typing-status"></span></div>`;
   wrap.appendChild(d);
   const status = getThinkingStatus(prompt);
@@ -590,8 +542,7 @@ function showTyping(prompt = "") {
   let dots = 1;
   span.textContent = status + ".";
   typingAnimation = setInterval(() => {
-    dots++;
-    if (dots > 3) dots = 1;
+    dots++; if (dots > 3) dots = 1;
     span.textContent = status + ".".repeat(dots);
   }, 400);
   wrap.scrollTop = wrap.scrollHeight;
@@ -603,12 +554,15 @@ function removeTyping() {
   if (t) t.remove();
 }
 
+// ✅ FIXED: only auto-scroll if user is already near the bottom
 async function typeWriter(bubble, text) {
   stopTyping = false;
+  const messages = document.getElementById("messages");
   for (let i = 1; i <= text.length; i++) {
     if (stopTyping) { bubble.innerHTML = fmt(text.substring(0, i)); return; }
     bubble.innerHTML = fmt(text.substring(0, i));
-    document.getElementById("messages").scrollTop = document.getElementById("messages").scrollHeight;
+    const isNearBottom = messages.scrollHeight - messages.scrollTop - messages.clientHeight < 80;
+    if (isNearBottom) messages.scrollTop = messages.scrollHeight;
     await new Promise(resolve => setTimeout(resolve, 10));
   }
   bubble.innerHTML = fmt(text);
@@ -624,8 +578,7 @@ const READABLE_EXT = /\.(txt|md|markdown|csv|tsv|json|js|jsx|ts|tsx|py|java|c|cp
 
 function setAttachStatus(text, isError) {
   const s = document.getElementById('attach-status');
-  s.textContent = text;
-  s.style.color = isError ? '#E24B4A' : '#999';
+  s.textContent = text; s.style.color = isError ? '#E24B4A' : '#999';
 }
 
 window.clearAttachment = function() {
@@ -638,11 +591,9 @@ window.handleFileSelect = function(event) {
   const file = event.target.files && event.target.files[0];
   if (!file) return;
   const preview = document.getElementById('attach-preview');
-  const nameEl  = document.getElementById('attach-name');
-  preview.style.display = 'flex';
-  nameEl.textContent = file.name;
-  setAttachStatus('Reading…', false);
-  pendingAttachment = null;
+  const nameEl = document.getElementById('attach-name');
+  preview.style.display = 'flex'; nameEl.textContent = file.name;
+  setAttachStatus('Reading…', false); pendingAttachment = null;
   const looksTextual = READABLE_EXT.test(file.name) || file.type.startsWith('text/') || file.type === 'application/json';
   if (!looksTextual) { setAttachStatus('Unsupported — text files only', true); pendingAttachment = null; document.getElementById('file-input').value = ''; return; }
   if (file.size > 2 * 1024 * 1024) { setAttachStatus('Too large (max 2MB)', true); document.getElementById('file-input').value = ''; return; }
@@ -661,11 +612,10 @@ window.handleFileSelect = function(event) {
 window.sendMessage = async function() {
   if (isStreaming || !currentUser) return;
   const input = document.getElementById('user-input');
-  const text  = input.value.trim();
+  const text = input.value.trim();
   const attachment = pendingAttachment;
   if (!text && !attachment) return;
-  isStreaming = true;
-  wasStopped = false;
+  isStreaming = true; wasStopped = false;
   input.value = ''; input.style.height = 'auto'; input.disabled = true;
   setSendBtnStopMode(true);
   window.clearAttachment();
@@ -680,9 +630,7 @@ window.sendMessage = async function() {
       document.getElementById('chat-title').textContent = title;
     } catch(e) {
       appendBubble('ai', 'Failed to create chat. Check your connection.');
-      isStreaming = false; input.disabled = false;
-      setSendBtnStopMode(false);
-      return;
+      isStreaming = false; input.disabled = false; setSendBtnStopMode(false); return;
     }
   }
   let chatMessages = [];
@@ -696,10 +644,7 @@ window.sendMessage = async function() {
   chatMessages.push(storedMsg);
   appendBubble('user', displayText, true, attachment ? attachment.name : null);
   showTyping(displayText);
-  const history = chatMessages.slice(-20).map(m => ({
-    role: m.role === 'ai' ? 'assistant' : 'user',
-    content: m.content
-  }));
+  const history = chatMessages.slice(-20).map(m => ({ role: m.role === 'ai' ? 'assistant' : 'user', content: m.content }));
   if (attachment && history.length) {
     const last = history[history.length - 1];
     last.content = `${last.content}\n\n[Attached file: ${attachment.name}]\n---\n${attachment.content}\n---`;
@@ -711,15 +656,7 @@ window.sendMessage = async function() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       signal: activeAbortController.signal,
-      body: JSON.stringify({
-        model: 'llama-3.1-8b-instant',
-        max_tokens: 1024,
-        temperature: 0.7,
-        messages: [
-          { role: 'system', content: buildSystemPrompt() },
-          ...history
-        ]
-      })
+      body: JSON.stringify({ model: 'llama-3.1-8b-instant', max_tokens: 1024, temperature: 0.7, messages: [{ role: 'system', content: buildSystemPrompt() }, ...history] })
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error?.message || 'API error ' + res.status);
@@ -733,14 +670,8 @@ window.sendMessage = async function() {
         const title = chatMessages[0]?.content?.slice(0,45) + (chatMessages[0]?.content?.length > 45 ? '…' : '') || 'Conversation';
         await set(ref(db, 'users/' + currentUser.uid + '/chats/' + currentChatId), { title, messages: chatMessages, ts: Date.now() });
       } catch(_) {}
-      isStreaming = false;
-      input.disabled = false;
-      input.style.opacity = '1';
-      input.style.pointerEvents = 'auto';
-      setSendBtnStopMode(false);
-      activeAbortController = null;
-      input.focus();
-      return;
+      isStreaming = false; input.disabled = false; input.style.opacity = '1'; input.style.pointerEvents = 'auto';
+      setSendBtnStopMode(false); activeAbortController = null; input.focus(); return;
     }
     reply = 'Error: ' + (e.message || 'Could not reach Groq. Check your connection or API key in Settings.');
   }
@@ -754,112 +685,62 @@ window.sendMessage = async function() {
     try {
       const title = chatMessages[0]?.content?.slice(0,45) + (chatMessages[0]?.content?.length > 45 ? '…' : '') || 'Conversation';
       await set(ref(db, 'users/' + currentUser.uid + '/chats/' + currentChatId), { title, messages: chatMessages, ts: Date.now() });
-    } catch (_) {}
-    isStreaming = false;
-    input.disabled = false;
-    setSendBtnStopMode(false);
-    input.focus();
-    return;
+    } catch(_) {}
+    isStreaming = false; input.disabled = false; setSendBtnStopMode(false); input.focus(); return;
   }
   chatMessages.push({ role: 'ai', content: reply });
   try {
     const title = chatMessages[0]?.content?.slice(0,45) + (chatMessages[0]?.content?.length > 45 ? '…' : '') || 'Conversation';
     await set(ref(db, 'users/' + currentUser.uid + '/chats/' + currentChatId), { title, messages: chatMessages, ts: Date.now() });
-  } catch (_) {}
+  } catch(_) {}
   document.querySelectorAll('.chat-item').forEach(i => i.classList.toggle('active', i.dataset.id === currentChatId));
   localStorage.setItem('og-last-chat-' + currentUser.uid, currentChatId);
-  isStreaming = false;
-  input.disabled = false;
-  setSendBtnStopMode(false);
-  input.focus();
+  isStreaming = false; input.disabled = false; setSendBtnStopMode(false); input.focus();
 };
 
 function setSendBtnStopMode(isStop) {
   const btn = document.getElementById('send-btn');
   if (isStop) {
-    btn.classList.add('stop');
-    btn.textContent = '■';
-    btn.title = 'Stop generating';
-    btn.setAttribute('aria-label', 'Stop generating');
-    btn.disabled = false;
+    btn.classList.add('stop'); btn.textContent = '■'; btn.title = 'Stop generating';
+    btn.setAttribute('aria-label', 'Stop generating'); btn.disabled = false;
   } else {
-    btn.classList.remove('stop');
-    btn.textContent = '↑';
-    btn.title = 'Send';
-    btn.setAttribute('aria-label', 'Send');
-    btn.disabled = false;
+    btn.classList.remove('stop'); btn.textContent = '↑'; btn.title = 'Send';
+    btn.setAttribute('aria-label', 'Send'); btn.disabled = false;
   }
 }
 
-window.handleSendBtnClick = function() {
-  if (isStreaming) { stopGenerating(); } else { sendMessage(); }
-};
-
-window.stopGenerating = function() {
-  if (activeAbortController) { wasStopped = true; activeAbortController.abort(); }
-  stopTyping = true;
-};
-
-window.toggleSidebar = function() {
-  const s = document.getElementById('sidebar');
-  const m = document.getElementById('main');
-  s.classList.toggle('open');
-  m.classList.toggle('shift');
-};
+window.handleSendBtnClick = function() { if (isStreaming) { stopGenerating(); } else { sendMessage(); } };
+window.stopGenerating = function() { if (activeAbortController) { wasStopped = true; activeAbortController.abort(); } stopTyping = true; };
+window.toggleSidebar = function() { const s = document.getElementById('sidebar'); const m = document.getElementById('main'); s.classList.toggle('open'); m.classList.toggle('shift'); };
 
 let deferredInstallPrompt = null;
 const installBtn = document.getElementById('install-btn');
-const settingsInstallBtn  = document.getElementById('settings-install-btn');
+const settingsInstallBtn = document.getElementById('settings-install-btn');
 const settingsInstallNote = document.getElementById('settings-install-note');
 
-function isStandalone() {
-  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-}
-function isIOS() {
-  return /iphone|ipad|ipod/i.test(navigator.userAgent) ||
-    (navigator.userAgent.includes('Mac') && navigator.maxTouchPoints > 1);
-}
+function isStandalone() { return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true; }
+function isIOS() { return /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.userAgent.includes('Mac') && navigator.maxTouchPoints > 1); }
 
 function refreshInstallButton() {
   if (isStandalone()) { installBtn.style.display = 'none'; }
   else if (deferredInstallPrompt) { installBtn.style.display = 'flex'; }
   else if (isIOS()) { installBtn.style.display = 'flex'; installBtn.textContent = '⬇ Install'; }
   else { installBtn.style.display = 'none'; }
-  if (isStandalone()) {
-    settingsInstallBtn.style.display = 'none';
-    settingsInstallNote.textContent = '✓ Already installed on this device.';
-  } else if (deferredInstallPrompt) {
-    settingsInstallBtn.style.display = 'flex';
-    settingsInstallNote.textContent = 'Install OG AI for a faster, app-like experience.';
-  } else if (isIOS()) {
-    settingsInstallBtn.style.display = 'flex';
-    settingsInstallBtn.textContent = '⬇ Install';
-    settingsInstallNote.textContent = 'Tap Install for instructions (Safari requires a manual step).';
-  } else {
-    settingsInstallBtn.style.display = 'none';
-    settingsInstallNote.textContent = 'Your browser doesn\'t support one-tap install here — look for "Install app" or "Add to Home Screen" in your browser\'s menu.';
-  }
+  if (isStandalone()) { settingsInstallBtn.style.display = 'none'; settingsInstallNote.textContent = '✓ Already installed on this device.'; }
+  else if (deferredInstallPrompt) { settingsInstallBtn.style.display = 'flex'; settingsInstallNote.textContent = 'Install OG AI for a faster, app-like experience.'; }
+  else if (isIOS()) { settingsInstallBtn.style.display = 'flex'; settingsInstallBtn.textContent = '⬇ Install'; settingsInstallNote.textContent = 'Tap Install for instructions (Safari requires a manual step).'; }
+  else { settingsInstallBtn.style.display = 'none'; settingsInstallNote.textContent = 'Your browser doesn\'t support one-tap install here — look for "Install app" or "Add to Home Screen" in your browser\'s menu.'; }
 }
 
-window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault();
-  deferredInstallPrompt = e;
-  refreshInstallButton();
-});
-
-window.addEventListener('appinstalled', () => {
-  deferredInstallPrompt = null;
-  refreshInstallButton();
-});
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredInstallPrompt = e; refreshInstallButton(); });
+window.addEventListener('appinstalled', () => { deferredInstallPrompt = null; refreshInstallButton(); });
 
 window.installApp = async function() {
   if (deferredInstallPrompt) {
     deferredInstallPrompt.prompt();
     const { outcome } = await deferredInstallPrompt.userChoice;
     if (outcome === 'accepted') { installBtn.style.display = 'none'; settingsInstallBtn.style.display = 'none'; }
-    deferredInstallPrompt = null;
-    refreshInstallButton();
-    return;
+    deferredInstallPrompt = null; refreshInstallButton(); return;
   }
   if (isIOS()) { showIosInstallTip(); return; }
   showIosInstallTip('Use your browser menu (⋮ or share icon) and choose "Install app" or "Add to Home Screen".');
@@ -874,8 +755,7 @@ function showIosInstallTip(customMsg) {
     tip.style.cssText = 'position:absolute;top:48px;right:10px;left:10px;max-width:320px;margin-left:auto;background:#1a1a1a;color:#fff;font-size:12px;line-height:1.5;padding:12px 14px;border-radius:10px;z-index:300;box-shadow:0 4px 16px rgba(0,0,0,.25)';
     document.getElementById('main').appendChild(tip);
   }
-  tip.textContent = msg;
-  tip.style.display = 'block';
+  tip.textContent = msg; tip.style.display = 'block';
   setTimeout(() => { tip.style.display = 'none'; }, 6000);
 }
 
@@ -892,8 +772,8 @@ window.openSettings = function() {
   document.getElementById('modal-overlay').classList.add('open');
 };
 window.closeSettings = function() { document.getElementById('modal-overlay').classList.remove('open'); };
-window.overlayClick  = function(e) { if (e.target.id === 'modal-overlay') closeSettings(); };
-window.saveSettings  = function() {
+window.overlayClick = function(e) { if (e.target.id === 'modal-overlay') closeSettings(); };
+window.saveSettings = function() {
   const k = document.getElementById('s-groq').value.trim();
   const p = document.getElementById('s-persona').value.trim();
   if (k) localStorage.setItem('og-groq-key', k); else localStorage.removeItem('og-groq-key');
@@ -906,34 +786,23 @@ window.saveSettings  = function() {
 
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 let recognition = null;
-
 if (SpeechRecognition) {
   recognition = new SpeechRecognition();
-  recognition.lang = 'en-US';
-  recognition.continuous = false;
-  recognition.interimResults = true;
+  recognition.lang = 'en-US'; recognition.continuous = false; recognition.interimResults = true;
   recognition.onresult = function(event) {
     let transcript = '';
-    for (let i = event.resultIndex; i < event.results.length; i++) {
-      transcript += event.results[i][0].transcript;
-    }
+    for (let i = event.resultIndex; i < event.results.length; i++) { transcript += event.results[i][0].transcript; }
     const box = document.getElementById('user-input');
     box.value = transcript;
     if (typeof autoResize === 'function') autoResize(box);
   };
-  recognition.onend = function() {
-    const b = document.getElementById('voice-btn');
-    if (b) b.textContent = '🎤';
-  };
+  recognition.onend = function() { const b = document.getElementById('voice-btn'); if (b) b.textContent = '🎤'; };
 }
-
 window.startListening = function() {
   if (!recognition) { alert("Speech recognition isn't supported in this browser."); return; }
   const b = document.getElementById('voice-btn');
-  b.textContent = '🔴';
-  recognition.start();
+  b.textContent = '🔴'; recognition.start();
 };
-
 </script>
 <script>
 if ("serviceWorker" in navigator) {
@@ -953,13 +822,10 @@ window.copyCode = async function(btn) {
     await navigator.clipboard.writeText(code);
     btn.textContent = "✔ Copied!";
     setTimeout(() => btn.textContent = "📋 Copy", 1200);
-  } catch (err) {
+  } catch(err) {
     const textarea = document.createElement("textarea");
-    textarea.value = code;
-    document.body.appendChild(textarea);
-    textarea.select();
-    document.execCommand("copy");
-    document.body.removeChild(textarea);
+    textarea.value = code; document.body.appendChild(textarea); textarea.select();
+    document.execCommand("copy"); document.body.removeChild(textarea);
     btn.textContent = "✔ Copied!";
     setTimeout(() => btn.textContent = "📋 Copy", 1200);
   }
